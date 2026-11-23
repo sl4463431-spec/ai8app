@@ -525,7 +525,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 11,
     paddingHorizontal: 17,
-    marginTop: 20,
+    mar by ginTop: 20,
   },
   backButtonText: {
     color: "#FFFFFF",
@@ -540,5 +540,6 @@ const styles = StyleSheet.create({
   footerText: {
     color: "#8EA6C4",
     fontSize: 12,
+    
   },
 });
