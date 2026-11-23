@@ -3,6 +3,7 @@
   "expo": {
     "name": "AI8",
     "slug": "ai8app",
+    "owner": "sadai8s-team",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
