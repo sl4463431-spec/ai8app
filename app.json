@@ -1,25 +1,12 @@
-
-{
-  "expo": {
-    "name": "AI8",
-    "slug": "ai8app",
-    "owner": "sadai8s-team",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "userInterfaceStyle": "dark",
-    "scheme": "ai8app",
-    "splash": {
-      "resizeMode": "contain",
-      "backgroundColor": "#080D24"
-    },
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.sadai8s.ai8app"
-    },
-    "android": {
-      "package": "com.sadai8s.ai8app"
+  "ios": {
+    "supportsTablet": true
+  },
+  "android": {
+    "package": "com.sdai8.ai8app"
+  },
+  "extra": {
+    "eas": {
+      "projectId": "a9819fbe-1ac3-4a1d-a0fc-d384dc9db189"
     }
   }
 }
-
-
