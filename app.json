@@ -1,12 +1,22 @@
-  "ios": {
-    "supportsTablet": true
-  },
-  "android": {
-    "package": "com.sdai8.ai8app"
-  },
-  "extra": {
-    "eas": {
-      "projectId": "a9819fbe-1ac3-4a1d-a0fc-d384dc9db189"
+{
+  "expo": {
+    "name": "AI8ApP",
+    "slug": "ai8app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "ai8app",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sdai8.ai8app"
+    },
+    "android": {
+      "package": "com.sdai8.ai8app"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a9819fbe-1ac3-4a1d-a0fc-d384dc9db189"
+      }
     }
   }
 }
