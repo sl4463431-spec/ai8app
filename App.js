@@ -1,97 +1,195 @@
-import React, { useState, useRef } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { SafeAreaView, View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, Alert, StatusBar } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Clipboard from "expo-clipboard";
 
-// المكان الوحيد اللي تحط فيه المفتاح - سطر واحد بس
-const API_KEY = "AQ.Ab8RN6JT70n97mR0I4VEfih9myqbcdisCIVLyIPldqpWzZSOOA";
+const API_URL = "https://ai8app.onrender.com/api/generate";
+const STORAGE_KEY = "AI8_CHATS";
+// مفيش مفتاح هنا خالص - المفتاح في السيرفر بس
 
 export default function App() {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
+  const [chats, setChats] = useState([]);
+  const [activeId, setActiveId] = useState(null);
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const scrollRef = useRef();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const scrollRef = useRef(null);
+  const activeChat = chats.find(c => c.id === activeId);
 
-  const sendMessage = async () => {
-    if (!input.trim() || loading) return;
-    const key = API_KEY.trim();
-    if (key === "حط_المفتاح_هنا" || key.length < 20) {
-      Alert.alert("المفتاح غلط", "انسخ المفتاح تاني من AI Studio، Copy key بس");
-      return;
-    }
-    const text = input;
-    setInput("");
-    const newMessages = [...messages, { role: "user", text }];
-    setMessages(newMessages);
+  useEffect(() => { loadChats(); }, []);
+
+  // تصليح 1: بيحفظ حتى لو القايمة فاضية
+  useEffect(() => {
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(chats)).catch(console.log);
+  }, [chats]);
+
+  async function loadChats() {
+    try {
+      const saved = await AsyncStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (Array.isArray(data) && data.length > 0) { setChats(data); setActiveId(data[0].id); return; }
+      }
+    } catch (e) { console.log(e); }
+    const first = { id: Date.now(), title: "محادثة جديدة", messages: [] };
+    setChats([first]); setActiveId(first.id);
+  }
+
+  function newChat() {
+    const chat = { id: Date.now(), title: "محادثة جديدة", messages: [] };
+    setChats(prev => [chat, ...prev]); setActiveId(chat.id); setMenuOpen(false);
+  }
+  function changeChat(id) { setActiveId(id); setMenuOpen(false); }
+  function deleteChat(id) {
+    if (chats.length === 1) { Alert.alert("تنبيه", "لازم تفضل محادثة واحدة"); return; }
+    const remaining = chats.filter(c => c.id !== id);
+    setChats(remaining);
+    if (activeId === id) { setActiveId(remaining[0].id); }
+  }
+  function updateChat(id, messages) {
+    setChats(prev => prev.map(c => c.id === id ? { ...c, title: c.title === "محادثة جديدة" && messages.find(m => m.role === "user") ? messages.find(m => m.role === "user").text.slice(0, 28) : c.title, messages } : c));
+  }
+
+  async function sendMessage(textOverride) {
+    const text = (textOverride ?? message).trim();
+    if (!text || loading || !activeChat) return;
+    setMessage("");
+    const chatId = activeId;
+    const previous = activeChat.messages;
+    const newMessages = [...previous, { role: "user", text }];
+    updateChat(chatId, newMessages);
     setLoading(true);
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: text, language: "ar", history: newMessages.slice(-10) })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "حدث خطأ في السيرفر");
+      const answer = data.text || "لم يصل رد من الذكاء الاصطناعي";
+      updateChat(chatId, [...newMessages, { role: "assistant", text: answer }]);
+    } catch (error) {
+      updateChat(chatId, [...newMessages, { role: "assistant", text: "⚠️ " + (error.message || "تعذر الاتصال بالسيرفر") + " - جرب تاني بعد 10 ثواني" }]);
+    } finally { setLoading(false); }
+  }
 
-    const models = ["gemini-3.8-flash", "gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash-lite"];
-    let reply = "";
+  // تصليح 2: regenerate من غير سباق
+  function regenerate() {
+    if (!activeChat || loading) return;
+    const messages = activeChat.messages;
+    const lastUser = [...messages].reverse().find(m => m.role === "user");
+    if (!lastUser) return;
+    // لو اخر رسالة من الـ AI امسحها، لو من المستخدم سيبها
+    const fixed = messages[messages.length - 1]?.role === "assistant" ? messages.slice(0, -1) : messages;
+    updateChat(activeId, fixed);
+    setTimeout(() => sendMessage(lastUser.text), 300);
+  }
 
-    for (let model of models) {
-      try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: "انت AI8، مساعد ذكي مصري. رد بالعربي المصري باختصار. سؤال: " + text }] }],
-            generationConfig: { temperature: 0.7, maxOutputTokens: 800 }
-          })
-        });
-        const data = await res.json();
-        if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
-          reply = data.candidates[0].content.parts[0].text;
-          break;
-        }
-        // لو الموديل مش موجود او زحمة، جرب اللي بعده
-        if (data.error && !data.error.message.includes("high demand") && !data.error.message.includes("overloaded") && !data.error.message.includes("not found") && !data.error.message.includes("is no longer")) {
-          reply = "خطأ من جوجل: " + data.error.message;
-          break;
-        }
-      } catch (e) {}
+  // تصليح 3: نسخ حقيقي
+  async function copyText(text) {
+    try {
+      await Clipboard.setStringAsync(text);
+      Alert.alert("تم", "اتنسخ ✅");
+    } catch (e) {
+      Alert.alert("نسخ الرد", "اضغط مطولاً على نص الرد واختر نسخ.");
     }
-
-    if (!reply) reply = "جوجل زحمة دلوقتي، استنى 10 ثواني وجرب تاني";
-    setMessages([...newMessages, { role: "assistant", text: reply }]);
-    setLoading(false);
-  };
+  }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" />
       <View style={styles.header}>
-        <Text style={styles.logo}>AI8</Text>
-        <Text style={styles.sub}>سريع • مجاني</Text>
+        <TouchableOpacity onPress={() => setMenuOpen(!menuOpen)}><Text style={styles.icon}>☰</Text></TouchableOpacity>
+        <Text style={styles.logo}>AI8 ✨</Text>
+        <TouchableOpacity onPress={newChat} style={styles.newButton}><Text style={styles.newText}>＋ جديد</Text></TouchableOpacity>
       </View>
-      <ScrollView ref={scrollRef} style={styles.chat} onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}>
-        {messages.length === 0 && <Text style={styles.empty}>ازيك 👋{"\n"}انا AI8{"\n"}اسألني أي حاجة</Text>}
-        {messages.map((m, i) => (
-          <View key={i} style={[styles.msg, m.role === "user" ? styles.userMsg : styles.aiMsg]}>
-            <Text style={[styles.msgText, m.role === "user" && styles.userText]}>{m.text}</Text>
+      {menuOpen && (
+        <View style={styles.sidebar}>
+          <TouchableOpacity onPress={newChat}><Text style={styles.menuTitle}>＋ محادثة جديدة</Text></TouchableOpacity>
+          <Text style={styles.sectionTitle}>محادثاتك</Text>
+          <ScrollView style={{ maxHeight: 250 }}>
+            {chats.map(chat => (
+              <View key={chat.id} style={styles.chatItem}>
+                <TouchableOpacity style={{ flex: 1 }} onPress={() => changeChat(chat.id)}><Text style={styles.chatTitle} numberOfLines={1}>💬 {chat.title}</Text></TouchableOpacity>
+                <TouchableOpacity onPress={() => deleteChat(chat.id)}><Text style={styles.delete}>🗑️</Text></TouchableOpacity>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+      <ScrollView ref={scrollRef} style={styles.chat} contentContainerStyle={styles.chatContent} onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}>
+        {(!activeChat || activeChat.messages.length === 0) && (
+          <View style={styles.welcome}>
+            <Text style={styles.welcomeLogo}>AI8</Text>
+            <Text style={styles.welcomeTitle}>أهلاً بيك 👋</Text>
+            <Text style={styles.subtitle}>مساعدك الذكي، اسألني أي حاجة</Text>
+            {["اكتب لي مقال احترافي", "اشرح لي درس صعب", "ساعدني في كتابة كود", "ترجم لي نص"].map((item, index) => (
+              <TouchableOpacity key={index} style={styles.suggestion} onPress={() => sendMessage(item)}><Text style={styles.suggestionText}>{item}</Text></TouchableOpacity>
+            ))}
+          </View>
+        )}
+        {activeChat?.messages.map((item, index) => (
+          <View key={index} style={[styles.message, item.role === "user" ? styles.userMessage : styles.aiMessage]}>
+            <Text style={styles.messageLabel}>{item.role === "user" ? "أنت" : "AI8 ✨"}</Text>
+            <Text selectable style={styles.messageText}>{item.text}</Text>
+            {item.role === "assistant" && (
+              <View style={styles.actions}>
+                <TouchableOpacity onPress={() => copyText(item.text)}><Text style={styles.actionText}>📋 نسخ</Text></TouchableOpacity>
+                {index === activeChat.messages.length - 1 && (<TouchableOpacity onPress={regenerate}><Text style={styles.actionText}>🔄 إعادة الرد</Text></TouchableOpacity>)}
+              </View>
+            )}
           </View>
         ))}
-        {loading && <Text style={styles.typing}>AI8 بيكتب... ✍️</Text>}
+        {loading && (<View style={styles.loading}><ActivityIndicator color="#36D6B2" /><Text style={styles.loadingText}>AI8 بيفكر...</Text></View>)}
       </ScrollView>
-      <View style={styles.inputRow}>
-        <TextInput style={styles.input} value={input} onChangeText={setInput} placeholder="اسأل AI8..." placeholderTextColor="#888" multiline />
-        <TouchableOpacity onPress={sendMessage} style={styles.send}><Text style={styles.sendText}>↑</Text></TouchableOpacity>
-      </View>
-    </View>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
+        <View style={styles.inputArea}>
+          <TouchableOpacity style={styles.plusButton} onPress={() => Alert.alert("AI8", "رفع الملفات والصور هيتوفر في التحديث الجاي.")}><Text style={styles.plusText}>＋</Text></TouchableOpacity>
+          <TextInput style={styles.input} placeholder="اسأل AI8 أي حاجة..." placeholderTextColor="#8A96A8" value={message} onChangeText={setMessage} multiline textAlign="right" />
+          <TouchableOpacity style={[styles.sendButton, (!message.trim() || loading) && { opacity: 0.4 }]} onPress={() => sendMessage()} disabled={!message.trim() || loading}><Text style={styles.sendText}>↑</Text></TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+      <Text style={styles.footer}>AI8 © 2026 • قد يخطئ الذكاء الاصطناعي</Text>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", paddingTop: 50 },
-  header: { alignItems: "center", padding: 12, borderBottomWidth: 1, borderBottomColor: "#eee" },
-  logo: { fontSize: 26, fontWeight: "bold" },
-  sub: { fontSize: 12, color: "#888" },
-  chat: { flex: 1, padding: 12 },
-  empty: { textAlign: "center", marginTop: 100, fontSize: 20, fontWeight: "bold", color: "#333", lineHeight: 32 },
-  msg: { padding: 12, borderRadius: 14, marginBottom: 10, maxWidth: "90%" },
-  userMsg: { backgroundColor: "#000", alignSelf: "flex-end" },
-  aiMsg: { backgroundColor: "#f0f0f0", alignSelf: "flex-start" },
-  msgText: { fontSize: 16, lineHeight: 22, color: "#000" },
-  userText: { color: "#fff" },
-  typing: { color: "#888", marginLeft: 8 },
-  inputRow: { flexDirection: "row", alignItems: "center", padding: 10, borderTopWidth: 1, borderTopColor: "#eee" },
-  input: { flex: 1, backgroundColor: "#f2f2f2", borderRadius: 22, paddingHorizontal: 15, paddingVertical: 10, fontSize: 16, maxHeight: 100 },
-  send: { backgroundColor: "#000", width: 42, height: 42, borderRadius: 21, justifyContent: "center", alignItems: "center", marginLeft: 8 },
-  sendText: { color: "#fff", fontSize: 20, fontWeight: "bold" },
+  container: { flex: 1, backgroundColor: "#101827" },
+  header: { height: 60, backgroundColor: "#172438", flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: "#29394D" },
+  logo: { color: "#36D6B2", fontSize: 23, fontWeight: "bold" },
+  icon: { color: "#FFFFFF", fontSize: 25 },
+  newButton: { backgroundColor: "#36D6B2", paddingHorizontal: 13, paddingVertical: 8, borderRadius: 20 },
+  newText: { color: "#102027", fontWeight: "bold" },
+  sidebar: { backgroundColor: "#172438", padding: 14 },
+  menuTitle: { color: "#36D6B2", fontSize: 16, fontWeight: "bold", padding: 10, textAlign: "right" },
+  sectionTitle: { color: "#AAB8C9", textAlign: "right", marginVertical: 10 },
+  chatItem: { flexDirection: "row", alignItems: "center", backgroundColor: "#24344A", padding: 12, borderRadius: 10, marginBottom: 7 },
+  chatTitle: { color: "#FFFFFF", textAlign: "right" },
+  delete: { marginLeft: 10, fontSize: 17 },
+  chat: { flex: 1 },
+  chatContent: { padding: 16, paddingBottom: 25 },
+  welcome: { alignItems: "center", marginTop: 45 },
+  welcomeLogo: { color: "#36D6B2", fontSize: 55, fontWeight: "bold" },
+  welcomeTitle: { color: "#FFFFFF", fontSize: 25, fontWeight: "bold", marginTop: 15 },
+  subtitle: { color: "#AAB8C9", marginTop: 10, marginBottom: 20 },
+  suggestion: { backgroundColor: "#202F43", padding: 14, borderRadius: 14, marginVertical: 5, width: "100%" },
+  suggestionText: { color: "#FFFFFF", textAlign: "right" },
+  message: { padding: 14, borderRadius: 16, marginBottom: 12, maxWidth: "95%" },
+  userMessage: { backgroundColor: "#245B58", alignSelf: "flex-end" },
+  aiMessage: { backgroundColor: "#202F43", alignSelf: "flex-start" },
+  messageLabel: { color: "#36D6B2", fontWeight: "bold", marginBottom: 7, textAlign: "right" },
+  messageText: { color: "#FFFFFF", fontSize: 16, lineHeight: 25, textAlign: "right" },
+  actions: { flexDirection: "row", justifyContent: "flex-end", gap: 18, marginTop: 12 },
+  actionText: { color: "#AAB8C9", fontSize: 13 },
+  loading: { flexDirection: "row", alignItems: "center", gap: 10, padding: 12 },
+  loadingText: { color: "#FFFFFF" },
+  inputArea: { flexDirection: "row", alignItems: "center", padding: 10, backgroundColor: "#172438", gap: 8 },
+  plusButton: { width: 38, height: 38, borderRadius: 19, backgroundColor: "#26384C", alignItems: "center", justifyContent: "center" },
+  plusText: { color: "#36D6B2", fontSize: 24 },
+  input: { flex: 1, backgroundColor: "#FFFFFF", borderRadius: 22, paddingHorizontal: 15, paddingVertical: 11, maxHeight: 110, color: "#111827", fontSize: 16 },
+  sendButton: { width: 42, height: 42, borderRadius: 21, backgroundColor: "#36D6B2", justifyContent: "center", alignItems: "center" },
+  sendText: { color: "#102027", fontSize: 25, fontWeight: "bold" },
+  footer: { color: "#78899D", backgroundColor: "#172438", textAlign: "center", padding: 7, fontSize: 10 }
 });
