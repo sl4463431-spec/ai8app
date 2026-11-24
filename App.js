@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from "react-native";
 
-// حط المفتاح بتاعك هنا بين "" - اللي نسخته من AI Studio
+// حط المفتاح هنا - لازم يبدأ بـ AIza ومفيهوش مسافات ولا سطر جديد
 const API_KEY = "AQ.Ab8RN6JT70n97mR0I4VEfih9myqbcdisCIVLyIPldqpWzZSOOA";
 
 export default function App() {
@@ -12,8 +12,9 @@ export default function App() {
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
-    if (API_KEY === "حط_المفتاح_هنا" || API_KEY.length < 10) {
-      Alert.alert("ناقص المفتاح", "حط المفتاح اللي نسخته من AI Studio في سطر API_KEY فوق");
+    const key = API_KEY.trim();
+    if (key === "حط_المفتاح_هنا" || key.length < 20) {
+      Alert.alert("المفتاح غلط", "المفتاح ناقص او فيه مسافة. انسخه تاني من AI Studio، Copy key بس");
       return;
     }
     const text = input;
@@ -23,17 +24,22 @@ export default function App() {
     setLoading(true);
 
     try {
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: "انت AI8، مساعد ذكي مصري. رد بالعربي المصري، باختصار، بشكل نضيف، من غير ** ولا ##. سؤال المستخدم: " + text }] }],
+          contents: [{ parts: [{ text: "انت AI8، مساعد ذكي مصري. رد بالعربي المصري باختصار. سؤال: " + text }] }],
           generationConfig: { temperature: 0.7, maxOutputTokens: 800 }
         })
       });
       const data = await res.json();
-      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "مفيش رد، جرب تاني";
-      setMessages([...newMessages, { role: "assistant", text: reply }]);
+      console.log(data);
+      if (data.error) {
+        setMessages([...newMessages, { role: "assistant", text: "خطأ من جوجل: " + data.error.message + " - اعمل مفتاح جديد" }]);
+      } else {
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "مفيش رد، جرب تاني";
+        setMessages([...newMessages, { role: "assistant", text: reply }]);
+      }
     } catch (e) {
       setMessages([...newMessages, { role: "assistant", text: "في مشكلة في النت، جرب تاني" }]);
     }
@@ -46,17 +52,15 @@ export default function App() {
         <Text style={styles.logo}>AI8</Text>
         <Text style={styles.sub}>سريع • مجاني</Text>
       </View>
-
       <ScrollView ref={scrollRef} style={styles.chat} onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}>
         {messages.length === 0 && <Text style={styles.empty}>ازيك 👋{"\n"}انا AI8{"\n"}اسألني أي حاجة</Text>}
         {messages.map((m, i) => (
           <View key={i} style={[styles.msg, m.role === "user" ? styles.userMsg : styles.aiMsg]}>
-            <Text style={styles.msgText}>{m.text}</Text>
+            <Text style={[styles.msgText, m.role === "user" && styles.userText]}>{m.text}</Text>
           </View>
         ))}
         {loading && <Text style={styles.typing}>AI8 بيكتب... ✍️</Text>}
       </ScrollView>
-
       <View style={styles.inputRow}>
         <TextInput style={styles.input} value={input} onChangeText={setInput} placeholder="اسأل AI8..." placeholderTextColor="#888" multiline />
         <TouchableOpacity onPress={sendMessage} style={styles.send}><Text style={styles.sendText}>↑</Text></TouchableOpacity>
@@ -76,6 +80,7 @@ const styles = StyleSheet.create({
   userMsg: { backgroundColor: "#000", alignSelf: "flex-end" },
   aiMsg: { backgroundColor: "#f0f0f0", alignSelf: "flex-start" },
   msgText: { fontSize: 16, lineHeight: 22, color: "#000" },
+  userText: { color: "#fff" },
   typing: { color: "#888", marginLeft: 8 },
   inputRow: { flexDirection: "row", alignItems: "center", padding: 10, borderTopWidth: 1, borderTopColor: "#eee" },
   input: { flex: 1, backgroundColor: "#f2f2f2", borderRadius: 22, paddingHorizontal: 15, paddingVertical: 10, fontSize: 16, maxHeight: 100 },
