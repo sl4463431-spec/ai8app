@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from "react-native";
 
 // حط المفتاح بتاعك هنا بين "" - اللي نسخته من AI Studio
-const API_KEY = " AQ.Ab8RN6JT70n97mR0I4VEfih9myqbcdisCIVLyIPldqpWzZSOOA";
+const API_KEY = "AQ.Ab8RN6JT70n97mR0I4VEfih9myqbcdisCIVLyIPldqpWzZSOOA";
 
 export default function App() {
   const [messages, setMessages] = useState([]);
