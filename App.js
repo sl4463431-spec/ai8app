@@ -1,58 +1,361 @@
-import React,{useState,useEffect,useRef} from "react";
-import {SafeAreaView,View,Text,TextInput,TouchableOpacity,ScrollView,StyleSheet,ActivityIndicator,KeyboardAvoidingView,Platform,Alert,StatusBar} from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  SafeAreaView,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+  StatusBar,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Speech from "expo-speech";
-const API="https://ai8app.onrender.com/api/generate";
-const APIV="https://ai8app.onrender.com/api/generate-video";
-const K1="AI8_LIB_V3",K2="AI8_FARM_V3",K3="AI8_OVR_V3",K4="AI8_VIDS_V3";
-function uid(){return Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8)}
-async function sSave(k,v){try{await AsyncStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}
-async function sLoad(k){try{const s=await AsyncStorage.getItem(k);return s?JSON.parse(s):null}catch(e){return null}}
-const DATA=[
-{t:"قمح",i:"🌾",b:"ميعاد:15نوفمبر-15ديسمبر.\nتربة:طينية جيدة الصرف.\nتقاوي:60كجم/فدان.\nري:بعد25،50،سنابل،امتلاء.\nتسميد:2سوبر+3يوريا.\nمرض:صدأ اصفر رش فطري.\nحصاد:160يوم.\nانتاج:20-24اردب."},
-{t:"ذرة",i:"🌽",b:"ميعاد:ابريل-يونيو.\nتربة:صفراء خفيفة.\nتقاوي:10كجم.\nري:كل10ايام ممنوع تعطيش تزهير.\nتسميد:2سوبر+4يوريا.\nافة:دودة حشد رش اول ثقوب.\nحصاد:110يوم.\nانتاج:22-28اردب."},
-{t:"بطاطس",i:"🥔",b:"ميعاد:سبتمبر ويناير.\nتربة:رملية.\nتقاوي:750كجم 2عين.\nري:منتظم.\nتسميد:4سوبر+3بوتاسيوم.\nمرض:ندوة رش كل10ايام.\nحصاد:110يوم.\nانتاج:12-15طن."},
-{t:"طماطم",i:"🍅",b:"ميعاد:مارس وسبتمبر.\nشتلة:30يوم.\nري:تنقيط ممنوع رش ورق.\nتسميد:نترات+كالسيوم.\nمرض:توتا مصايد+رش.\nحصاد:كل3ايام.\nانتاج:20-30طن."},
-{t:"أرز",i:"🍚",b:"ميعاد:مشتل مايو شتل يونيو.\nتربة:طينية.\nتقاوي:60كجم انقع24س.\nري:مية5سم.\nتسميد:2سوبر+3يوريا.\nحصاد:140يوم.\nانتاج:4-5طن."},
-{t:"بصل",i:"🧅",b:"ميعاد:مشتل سبتمبر شتل نوفمبر.\nشتلة:60يوم.\nري:كل10ايام قلل قبل حصاد20يوم.\nتسميد:3سوبر+3نترات.\nحصاد:150يوم.\nانتاج:15-20طن."},
-{t:"بقر",i:"🐄",b:"سلالة:هولشتاين لبن.\nاكل:علف18% 2% وزنها.\nمية:60-80لتر.\nحليب:ميعاد ثابت.\nتحصين:قلاعية6شهور.\nولادة:9شهور.\nنصيحة:متغيرش علف فجأة."},
-{t:"جاموس",i:"🐃",b:"بيحب مية وطين رش مرتين صيف.\nلبن:دهون7%.\nانتاج:8-12كجم.\nتحصين:قلاعية6شهور.\nولادة:10شهور."},
-{t:"غنم",i:"🐑",b:"سلالة:رحماني.\nاكل:1.5كجم والدة2كجم.\nولادة:مرتين سنة حمل5شهور.\nتحصين:جدري تسمم طاعون.\nديدان:كل3شهور."},
-{t:"ماعز",i:"🐐",b:"انشط من غنم.\nلبن:مفيد دهون قليلة.\nولادة:توأم حمل5شهور.\nتسمين:6شهور بيع عيد."},
-{t:"فراخ",i:"🐔",b:"تسمين:35-40يوم 2كجم.\nحرارة:33 اول اسبوع تنزل2.\nاكل:بادي21% نامي19%.\nبياض:نور16س علف16%+كالسيوم.\nتحصين:نيوكاسل7و21 جمبورو14."},
-{t:"بط",i:"🦆",b:"اكل:150جم+خضرة.\nدبح:60يوم 3كجم.\nتحصين:طاعون بط.\nبيض:150/سنة."},
-{t:"ارانب",i:"🐰",b:"ولادة:كل شهر 8 حمل30يوم.\nاكل:علف+برسيم ناشف ممنوع مبلول.\nتحصين:تسمم دموي6شهور.\nفطام:30يوم بيع شهرين."},
-{t:"اسماك",i:"🐟",b:"بلطي اسهل.\nحوض:فدان10الاف.\nمية:نضيفة غير10% اسبوع.\nاكل:علف30% 3% وزن وجبتين.\nحصاد:6شهور 300جم."},
-{t:"نحل",i:"🐝",b:"خلية:10براويز مشمس هادي.\nانتاج:10-15كجم عسل.\nفحص:كل10ايام.\nمرض:فاروا شرائط."},
-{t:"اعلاف",i:"🌿",b:"تسمين16% حلاب18% بياض16%+كالسيوم.\nبرسيم:احسن شتوي.\nتبن:ناشف مفيهوش عفن.\nتغيير:في7ايام."},
-];
-export default function App(){
-const [lang,setLang]=useState("ar");const [mode,setMode]=useState("home");const [search,setSearch]=useState("");const [extra,setExtra]=useState([]);const [over,setOver]=useState({});const [libLoad,setLibLoad]=useState(false);const [openId,setOpenId]=useState(null);const [editId,setEditId]=useState(null);const [editTxt,setEditTxt]=useState("");const [chats,setChats]=useState([]);const [activeId,setActiveId]=useState(null);const [message,setMessage]=useState("");const [loading,setLoading]=useState(false);const [vPrompt,setVPrompt]=useState("");const [vLoad,setVLoad]=useState(false);const [vRes,setVRes]=useState(null);const [vList,setVList]=useState([]);const [loaded,setLoaded]=useState(false);const [speechOk,setSpeechOk]=useState(true);
-const ref=useRef(null);const isAr=lang==="ar";const activeChat=chats.find(c=>c.id===activeId);
-const baseLib=DATA.map((d,idx)=>({id:"d"+idx,title:d.t,body:over["d"+idx]||d.b,icon:d.i,fixed:true,edited:!!over["d"+idx]}));
-const allLib=[...baseLib,...extra];
-useEffect(()=>{loadAll()},[]);useEffect(()=>{if(loaded)sSave(K2,chats)},[chats,loaded]);useEffect(()=>{if(loaded)sSave(K1,extra)},[extra,loaded]);useEffect(()=>{if(loaded)sSave(K3,over)},[over,loaded]);useEffect(()=>{if(loaded)sSave(K4,vList)},[vList,loaded]);
-async function loadAll(){try{const a=await sLoad(K2);const b=await sLoad(K1);const c=await sLoad(K3);const d=await sLoad(K4);if(b)setExtra(b||[]);if(c)setOver(c||{});if(d)setVList(d||[]);if(a&&a.length>0){setChats(a);setActiveId(a[0].id)}else newChat(true)}catch(e){newChat(true)}finally{setLoaded(true)}}
-function newChat(silent){const f={id:uid(),title:isAr?"محادثة جديدة":"New chat",messages:[]};setChats(p=>[f,...p]);setActiveId(f.id);if(!silent)setMode("chat");return f}
-function delChat(id){Alert.alert(isAr?"مسح محادثة":"Delete",isAr?"متأكد؟":"Sure?",[{text:isAr?"لا":"No"},{text:isAr?"مسح":"Delete",onPress:()=>{const r=chats.filter(c=>c.id!==id);if(r.length===0){const nf={id:uid(),title:isAr?"محادثة جديدة":"New chat",messages:[]};setChats([nf]);setActiveId(nf.id)}else{setChats(r);if(id===activeId)setActiveId(r[0].id)}}}])}
-function speak(t){if(!t)return;try{if(!Speech||!Speech.speak){setSpeechOk(false);Alert.alert("AI8",isAr?"ثبت expo-speech من Dependencies":"Install expo-speech");return}Speech.stop();Speech.speak(t,{language:isAr?"ar-EG":"en-US",rate:0.95})}catch(e){setSpeechOk(false);Alert.alert("AI8",isAr?"ثبت expo-speech":"Install expo-speech")}}
-function upChat(id,msgs){setChats(p=>p.map(c=>c.id!==id?c:{...c,messages:msgs,title:msgs[0]?.text?.slice(0,25)||c.title}))}
-async function askAI(prompt,history){const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt,language:lang,history:history||[]})});const d=await r.json();return d.text||"لا توجد اجابة"}
-async function searchLib(topic){const q=(topic||search).trim();if(!q||libLoad)return;const f=allLib.find(x=>x.title===q);if(f){setOpenId(f.id);setMode("library");return}setLibLoad(true);setMode("library");try{const pr=isAr?"انت مهندس زراعي ودكتور بيطري خبير في مصر. اشرح بالتفصيل الكامل عن: "+q+" ميعاد تربة تقاوي ري تسميد امراض حصاد انتاج تكلفة نصائح بالعربي المصري.":"Expert farmer vet explain full detail about: "+q;const txt=await askAI(pr,[]);const it={id:uid(),title:q,body:txt,icon:"📚",fixed:false};setExtra(p=>[it,...p]);setOpenId(it.id)}catch(e){Alert.alert("AI8",e.message)}finally{setLibLoad(false)}}
-function delLib(id){Alert.alert(isAr?"مسح":"Delete",isAr?"متأكد؟":"Sure?",[{text:isAr?"لا":"No"},{text:isAr?"مسح":"Delete",onPress:()=>{if(id.startsWith("d")){const n={...over};delete n[id];setOver(n)}else{setExtra(p=>p.filter(x=>x.id!==id))}if(openId===id)setOpenId(null)}}])}
-function saveEdit(){if(!editId)return;if(editId.startsWith("d")){setOver(p=>({...p,[editId]:editTxt}))}else{setExtra(p=>p.map(x=>x.id===editId?{...x,body:editTxt}:x))}setEditId(null);setEditTxt("")}
-async function sendMsg(){const txt=message.trim();if(!txt||loading||!activeChat)return;setMessage("");const cid=activeId;const prev=activeChat.messages;const nm=[...prev,{role:"user",text:txt}];upChat(cid,nm);setLoading(true);try{const hist=nm.slice(-10).map(m=>({role:m.role,content:m.text}));const sum=hist.map(h=>(h.role==="user"?"فلاح: ":"مساعد: ")+h.content).join("\n");const base=isAr?"انت دكتور بيطري ومهندس زراعي خبير في مصر. جاوب بالتفصيل بالعربي المصري، وافتكر المحادثة:\n"+sum:"Expert vet answer full detail, remember:\n"+sum;const ans=await askAI(base+"\nالسؤال الجديد: "+txt,hist);upChat(cid,[...nm,{role:"assistant",text:ans}])}catch(e){upChat(cid,[...nm,{role:"assistant",text:"⚠️ "+e.message}])}finally{setLoading(false)}}
-async function genVideo(){if(!vPrompt.trim()){Alert.alert("AI8",isAr?"اكتب وصف الفيديو":"Write desc");return}setVLoad(true);setVRes(null);const ctrl=new AbortController();const to=setTimeout(()=>ctrl.abort(),30000);try{const r=await fetch(APIV,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt:vPrompt,language:lang}),signal:ctrl.signal});clearTimeout(to);if(r.status===404||r.status===405)throw new Error("SERVER_NO_VIDEO");const d=await r.json();if(d.videoUrl||d.url){const it={id:uid(),prompt:vPrompt,url:d.videoUrl||d.url,status:"ready",created:Date.now()};setVList(p=>[it,...p]);setVRes(isAr?"✅ الفيديو اتولد فعلا من السيرفر":"✅ Video generated")}else if(d.status==="queued"||d.jobId){const it={id:uid(),prompt:vPrompt,url:null,status:"queued",jobId:d.jobId,created:Date.now()};setVList(p=>[it,...p]);setVRes(isAr?"⏳ في الانتظار: "+d.jobId:"⏳ Queued: "+d.jobId)}else throw new Error("NO_URL")}catch(e){clearTimeout(to);if(e.message==="SERVER_NO_VIDEO"){const it={id:uid(),prompt:vPrompt,url:null,status:"server_not_ready",created:Date.now()};setVList(p=>[it,...p]);setVRes(isAr?"❌ السيرفر لسه مش مجهز لمسار /api/generate-video. حفظنا طلبك كطلب معلق، ومفيش فيديو اتولد.":"❌ Server not ready for /api/generate-video. Saved as pending.")}else if(e.name==="AbortError"){setVRes(isAr?"⏰ السيرفر اتأخر 30 ثانية":"⏰ Timeout 30s")}else{const it={id:uid(),prompt:vPrompt,url:null,status:"error",created:Date.now()};setVList(p=>[it,...p]);setVRes(isAr?"⚠️ خطأ فيديو: "+e.message:"⚠️ Video error: "+e.message)}}finally{setVLoad(false)}}
-const filt=allLib.filter(x=>!search.trim()||x.title.includes(search.trim()));
-return(
-<SafeAreaView style={s.c}><StatusBar barStyle="light-content"/>
-<View style={s.top}><View><Text style={s.ts}>{isAr?"اهلا بيك في":"Welcome to"}</Text><Text style={s.logo}>🌾 AI8 الفلاح</Text></View><View style={s.lr}><TouchableOpacity onPress={()=>setLang("ar")} style={[s.lb,lang==="ar"&&s.lon]}><Text style={s.lt}>عربي</Text></TouchableOpacity><TouchableOpacity onPress={()=>setLang("en")} style={[s.lb,lang==="en"&&s.lon]}><Text style={s.lt}>EN</Text></TouchableOpacity></View></View>
-<View style={s.tabs}><TouchableOpacity onPress={()=>setMode("home")} style={[s.tab,mode==="home"&&s.ton]}><Text style={s.tt}>{isAr?"🏠 الرئيسية":"🏠 Home"}</Text></TouchableOpacity><TouchableOpacity onPress={()=>setMode("library")} style={[s.tab,mode==="library"&&s.ton]}><Text style={s.tt}>{isAr?"📚 مكتبة":"📚 Library"}</Text></TouchableOpacity><TouchableOpacity onPress={()=>setMode("chat")} style={[s.tab,mode==="chat"&&s.ton]}><Text style={s.tt}>{isAr?"💬 اسأل":"💬 Ask"}</Text></TouchableOpacity><TouchableOpacity onPress={()=>setMode("video")} style={[s.tab,mode==="video"&&s.ton]}><Text style={s.tt}>{isAr?"🎬 فيديو":"🎬 Video"}</Text></TouchableOpacity></View>
-{mode==="home"&&(<ScrollView style={s.sc} contentContainerStyle={{padding:16,paddingBottom:30}}><View style={s.hero}><Text style={s.hi}>🌾🐄🐔</Text><Text style={s.ht}>{isAr?"مكتبة الفلاح الكاملة":"Full Farmer Library"}</Text><Text style={s.hs}>{isAr?"افتح اي كتاب، كل التفاصيل جاهزة + صوت":"Open any book, full details + voice"}</Text><TouchableOpacity style={s.hb} onPress={()=>setMode("library")}><Text style={s.hbt}>{isAr?"📚 افتح المكتبة":"📚 Open Library"}</Text></TouchableOpacity></View><Text style={s.sec}>{isAr?"الكتب الجاهزة":"Ready Books"}</Text><View style={s.grid}>{DATA.map((q,idx)=>(<TouchableOpacity key={q.t} style={s.gc} onPress={()=>{setSearch("");setOpenId("d"+idx);setMode("library")}}><Text style={s.gi}>{q.i}</Text><Text style={s.gt}>{q.t}</Text></TouchableOpacity>))}</View>{!speechOk&&<View style={s.tip}><Text style={s.tit}>⚠️ {isAr?"الصوت مش متثبت":"Voice not installed"}</Text><Text style={s.tit2}>{isAr?"Dependencies - اكتب expo-speech - Add":"Dependencies - expo-speech - Add"}</Text></View>}<View style={s.tip}><Text style={s.tit}>{isAr?"💡 الجديد":"💡 New"}</Text><Text style={s.tit2}>{isAr?"تعديل بيعدل الاصل، ID فريد، حفظ آمن، فيديو صادق لو السيرفر مش جاهز.":"Edit original, unique ID, safe save, honest video."}</Text></View></ScrollView>)}
-{mode==="library"&&(<View style={{flex:1}}><View style={s.sb}><TextInput style={s.si} placeholder={isAr?"دور على اي حاجة...":"Search anything..."} placeholderTextColor="#8A96A8" value={search} onChangeText={setSearch} onSubmitEditing={()=>searchLib()}/><TouchableOpacity style={s.gb} onPress={()=>searchLib()}><Text style={s.gt2}>{isAr?"🔍 هات المعلومات":"🔍 Get Info"}</Text></TouchableOpacity></View>{libLoad&&<View style={s.ld}><ActivityIndicator color="#2E7D32"/><Text style={s.ldt}>{isAr?"بنجمع...":"Collecting..."}</Text></View>}<ScrollView style={s.sc} contentContainerStyle={{padding:16}}>{filt.map(item=>(<View key={item.id} style={s.card}><TouchableOpacity onPress={()=>setOpenId(openId===item.id?null:item.id)}><View style={s.ct}><Text style={s.ci}>{item.icon}</Text><View style={{flex:1}}><Text style={s.ctt}>{item.title}{item.edited?" (معدل)":""}</Text><Text style={s.cc}>{isAr?"درس كامل":"Full Lesson"}</Text></View><Text style={s.ar}>{openId===item.id?"▲":"▼"}</Text></View></TouchableOpacity>{openId===item.id&&<View><Text style={s.cb}>{item.body}</Text><View style={s.row}><TouchableOpacity style={s.mini} onPress={()=>speak(item.body)}><Text style={s.miniT}>🔊 {isAr?"اسمع":"Listen"}</Text></TouchableOpacity><TouchableOpacity style={s.mini} onPress={()=>{setEditId(item.id);setEditTxt(item.body)}}><Text style={s.miniT}>✏️ {isAr?"تعديل":"Edit"}</Text></TouchableOpacity><TouchableOpacity style={[s.mini,{backgroundColor:"#FFEBEE"}]} onPress={()=>delLib(item.id)}><Text style={[s.miniT,{color:"#C62828"}]}>{item.fixed?(isAr?"↩️ رجع الاصل":"↩️ Restore"):(isAr?"🗑️ حذف":"🗑️ Delete")}</Text></TouchableOpacity></View>{editId===item.id&&<View><TextInput style={s.editIn} value={editTxt} onChangeText={setEditTxt} multiline/><TouchableOpacity style={s.gb} onPress={saveEdit}><Text style={s.gt2}>{isAr?"💾 حفظ على الاصل":"💾 Save"}</Text></TouchableOpacity></View>}</View>}</View>))}</ScrollView></View>)}
-{mode==="chat"&&(<View style={{flex:1}}><ScrollView horizontal style={s.chatBar} showsHorizontalScrollIndicator={false}><TouchableOpacity style={s.newChat} onPress={()=>newChat(false)}><Text style={s.newChatT}>+ {isAr?"محادثة جديدة":"New Chat"}</Text></TouchableOpacity>{chats.map(c=>(<View key={c.id} style={[s.chatPill,activeId===c.id&&s.chatOn]}><TouchableOpacity onPress={()=>setActiveId(c.id)}><Text style={[s.chatPillT,activeId===c.id&&{color:"#fff"}]}>{c.title.slice(0,15)||"Chat"}</Text></TouchableOpacity><TouchableOpacity onPress={()=>delChat(c.id)}><Text style={{color:activeId===c.id?"#fff":"#C62828",marginLeft:6}}>✕</Text></TouchableOpacity></View>))}</ScrollView><ScrollView ref={ref} style={s.sc} contentContainerStyle={{padding:16}} onContentSizeChange={()=>{ref.current?.scrollToEnd({animated:true})}}>{(!activeChat||activeChat.messages.length===0)&&(<View style={s.w}><Text style={s.wl}>🌾</Text><Text style={s.wt}>{isAr?"اسأل عن اي حاجة":"Ask Anything"}</Text><Text style={s.sub}>{isAr?"بيفتكر آخر 10 رسايل":"Remembers last 10"}</Text></View>)}{activeChat?.messages.map((it,i)=>(<View key={i} style={[s.msg,it.role==="user"?s.um:s.am]}><Text style={[s.mt,it.role==="user"?s.ut:s.at]}>{it.text}</Text>{it.role==="assistant"&&<TouchableOpacity onPress={()=>speak(it.text)}><Text style={{color:"#2E7D32",marginTop:6,fontWeight:"bold"}}>🔊 {isAr?"اسمع الرد":"Listen"}</Text></TouchableOpacity>}</View>))}{loading&&<View style={s.ld}><ActivityIndicator color="#2E7D32"/><Text style={s.ldt}>{isAr?"بيفكر...":"Thinking..."}</Text></View>}</ScrollView><KeyboardAvoidingView behavior={Platform.OS==="ios"?"padding":undefined}><View style={s.ia}><TextInput style={s.in} placeholder={isAr?"اسأل عن اي حاجة...":"Ask anything..."} placeholderTextColor="#8A96A8" value={message} onChangeText={setMessage} multiline/><TouchableOpacity style={s.snd} onPress={sendMsg}><Text style={s.sndt}>↑</Text></TouchableOpacity></View></KeyboardAvoidingView></View>)}
-{mode==="video"&&(<ScrollView style={s.sc} contentContainerStyle={{padding:16}}><Text style={s.vt}>🎬 {isAr?"فيديو":"Video"}</Text><Text style={s.vs}>{isAr?"لو السيرفر مش مجهز، هنقولك صراحة":"If server not ready, we tell you"}</Text><TextInput style={s.vi} placeholder={isAr?"مثال: اربي عجل":"Ex: raise calf"} placeholderTextColor="#8A96A8" value={vPrompt} onChangeText={setVPrompt} multiline/><TouchableOpacity style={s.gb} onPress={genVideo}><Text style={s.gt2}>{vLoad?(isAr?"جاري...":"Generating..."):(isAr?"✨ جرب توليد فيديو":"✨ Try Generate")}</Text></TouchableOpacity>{vLoad&&<ActivityIndicator color="#2E7D32" style={{marginTop:12}}/>}{vRes&&<View style={s.rb}><Text style={s.rt}>{vRes}</Text></View>}{vList.map(v=>(<View key={v.id} style={s.card}><Text style={s.ctt}>🎬 {v.prompt}</Text><Text style={s.cc}>{v.status==="ready"?"✅ "+(v.url||""):v.status==="queued"?"⏳ "+(isAr?"في الانتظار":"Queued")+" "+(v.jobId||""):v.status==="server_not_ready"?"❌ "+(isAr?"السيرفر مش مجهز - طلب معلق":"Server not ready - pending"):(isAr?"طلب معلق":"Pending")}</Text>{v.url&&<Text style={{color:"#2E7D32",marginTop:6}}>{v.url}</Text>}<TouchableOpacity style={s.mini} onPress={()=>speak(v.prompt)}><Text style={s.miniT}>🔊 {isAr?"اسمع":"Listen"}</Text></TouchableOpacity></View>))}</ScrollView>)}
-<Text style={s.ft}>AI8 الفلاح © 2026 - بدون API KEY - حفظ آمن</Text>
-</SafeAreaView>);}
+
+const API = "https://onrender.com";
+const APIV = "https://onrender.com-video";
+const K1 = "AI8_LIB_V3",
+  K2 = "AI8_FARM_V3",
+  K3 = "AI8_OVR_V3",
+  K4 = "AI8_VIDS_V3";
+
+function uid() {
+  return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
 }
-const s=StyleSheet.create({c:{flex:1,backgroundColor:"#F6F8F3"},top:{backgroundColor:"#1B5E20",paddingHorizontal:16,paddingVertical:14,flexDirection:"row",justifyContent:"space-between",alignItems:"center"},ts:{color:"#C8E6C9",fontSize:12},logo:{color:"#fff",fontSize:21,fontWeight:"bold",marginTop:2},lr:{flexDirection:"row",gap:6},lb:{paddingHorizontal:12,paddingVertical:6,borderRadius:15,backgroundColor:"#2E7D32"},lon:{backgroundColor:"#FFC107"},lt:{color:"#fff",fontWeight:"bold"},tabs:{flexDirection:"row",padding:10,gap:6,backgroundColor:"#fff"},tab:{flex:1,paddingVertical:10,borderRadius:12,backgroundColor:"#E8F5E9",alignItems:"center"},ton:{backgroundColor:"#2E7D32"},tt:{color:"#1B5E20",fontWeight:"bold",fontSize:13},sc:{flex:1},hero:{backgroundColor:"#2E7D32",borderRadius:20,padding:20,alignItems:"center"},hi:{fontSize:40},ht:{color:"#fff",fontSize:22,fontWeight:"bold",marginTop:8,textAlign:"center"},hs:{color:"#E8F5E9",textAlign:"center",marginTop:8},hb:{backgroundColor:"#FFC107",paddingHorizontal:22,paddingVertical:12,borderRadius:25,marginTop:14},hbt:{color:"#1B5E20",fontWeight:"bold",fontSize:15},sec:{fontSize:18,fontWeight:"bold",color:"#1B5E20",marginTop:20,marginBottom:10},grid:{flexDirection:"row",flexWrap:"wrap",gap:10},gc:{width:"48%",borderRadius:16,padding:14,alignItems:"center",backgroundColor:"#fff"},gi:{fontSize:32},gt:{fontWeight:"bold",fontSize:15,color:"#1B5E20",marginTop:6},tip:{backgroundColor:"#FFF8E1",borderRadius:14,padding:14,marginTop:18},tit:{fontWeight:"bold",color:"#F57F17"},tit2:{color:"#333",marginTop:6},sb:{paddingHorizontal:16,paddingTop:10},si:{backgroundColor:"#fff",borderRadius:20,paddingHorizontal:14,paddingVertical:11,color:"#111827"},card:{backgroundColor:"#fff",padding:14,borderRadius:16,marginBottom:10},ct:{flexDirection:"row",alignItems:"center",gap:10},ci:{fontSize:32,backgroundColor:"#E8F5E9",padding:8,borderRadius:12},ctt:{color:"#1B5E20",fontSize:16,fontWeight:"bold"},cc:{color:"#2E7D32",fontSize:12,marginTop:2},ar:{color:"#999"},cb:{color:"#333",fontSize:15,lineHeight:23,marginTop:12,backgroundColor:"#F9FBE7",padding:10,borderRadius:10},w:{alignItems:"center",marginTop:40},wl:{fontSize:50},wt:{color:"#1B5E20",fontSize:22,fontWeight:"bold",marginTop:10},sub:{color:"#666",marginTop:8},msg:{padding:14,borderRadius:16,marginBottom:12,maxWidth:"85%"},um:{backgroundColor:"#2E7D32",alignSelf:"flex-end"},am:{backgroundColor:"#fff",alignSelf:"flex-start"},mt:{fontSize:16,lineHeight:24},ut:{color:"#fff"},at:{color:"#111827"},ld:{flexDirection:"row",gap:10,padding:12,alignItems:"center"},ldt:{color:"#333"},ia:{flexDirection:"row",padding:10,backgroundColor:"#fff",gap:8,alignItems:"center"},in:{flex:1,backgroundColor:"#F5F5F5",borderRadius:22,paddingHorizontal:15,paddingVertical:11,color:"#111827"},snd:{width:42,height:42,borderRadius:21,backgroundColor:"#2E7D32",justifyContent:"center",alignItems:"center"},sndt:{color:"#fff",fontSize:22,fontWeight:"bold"},ft:{color:"#888",backgroundColor:"#fff",textAlign:"center",padding:8,fontSize:10},vt:{color:"#1B5E20",fontSize:22,fontWeight:"bold"},vs:{color:"#666",marginVertical:8},vi:{backgroundColor:"#fff",borderRadius:16,padding:14,minHeight:90,color:"#111827"},gb:{backgroundColor:"#2E7D32",paddingVertical:15,borderRadius:16,alignItems:"center",marginTop:12},gt2:{color:"#fff",fontWeight:"bold",fontSize:17},rb:{backgroundColor:"#E8F5E9",padding:14,borderRadius:14,marginTop:14},rt:{color:"#1B5E20"},row:{flexDirection:"row",gap:8,marginTop:10},mini:{backgroundColor:"#E8F5E9",paddingHorizontal:12,paddingVertical:8,borderRadius:15},miniT:{color:"#1B5E20",fontWeight:"bold",fontSize:13},editIn:{backgroundColor:"#fff",borderWidth:1,borderColor:"#ddd",borderRadius:12,padding:10,marginTop:10,minHeight:120,color:"#111827",textAlignVertical:"top"},chatBar:{maxHeight:48,paddingHorizontal:10,paddingTop:8},newChat:{backgroundColor:"#1B5E20",paddingHorizontal:12,paddingVertical:8,borderRadius:18,marginRight:8,height:34},newChatT:{color:"#fff",fontWeight:"bold",fontSize:13},chatPill:{flexDirection:"row",backgroundColor:"#fff",paddingHorizontal:10,paddingVertical:8,borderRadius:18,marginRight:6,height:34,alignItems:"center"},chatOn:{backgroundColor:"#2E7D32"},chatPillT:{color:"#333",fontWeight:"bold",fontSize:13},});
+
+async function sSave(k, v) {
+  try {
+    await AsyncStorage.setItem(k, JSON.stringify(v));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function sLoad(k) {
+  try {
+    const s = await AsyncStorage.getItem(k);
+    return s ? JSON.parse(s) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+const DATA = [
+  {
+    t: "قمح",
+    i: "🌾",
+    b: "ميعاد:15نوفمبر-15ديسمبر.\nتربة:طينية جيدة الصرف.\nتقاوي:60كجم/فدان.\nري:بعد25،50،سنابل،امتلاء.\nتسميد:2سوبر+3يوريا.\nمرض:صدأ اصفر رش فطري.\nحصاد:160يوم.\nانتاج:20-24اردب.",
+  },
+  {
+    t: "ذرة",
+    i: "🌽",
+    b: "ميعاد:ابريل-يونيو.\nتربة:صفراء خفيفة.\nتقاوي:10كجم.\nري:كل10ايام ممنوع تعطيش تزهير.\nتسميد:2سوبر+4يوريا.\nافة:دودة حشد رش اول ثقوب.\nحصاد:110يوم.\nانتاج:22-28اردب.",
+  },
+  {
+    t: "بطاطس",
+    i: "🥔",
+    b: "ميعاد:سبتمبر ويناير.\nتربة:رملية.\nتقاوي:750كجم 2عين.\nري:منتظم.\nتسميد:4سوبر+3بوتاسيوم.\nمرض:ندوة رش كل10ايام.\nحصاد:110يوم.\nانتاج:12-15طن.",
+  },
+  {
+    t: "طماطم",
+    i: "🍅",
+    b: "ميعاد:مارس وسبتمبر.\nشتلة:30يوم.\nري:تنقيط ممنوع رش ورق.\nتسميد:نترات+كالسيوم.\nمرض:توتا مصايد+رش.\nحصاد:كل3ايام.\nانتاج:20-30طن.",
+  },
+  {
+    t: "أرز",
+    i: "🍚",
+    b: "ميعاد:مشتل مايو شتل يونيو.\nتربة:طينية.\nتقاوي:60كجم انقع24س.\nري:مية5سم.\nتسميد:2سوبر+3يوريا.\nحصاد:140يوم.\nانتاج:4-5طن.",
+  },
+  {
+    t: "بصل",
+    i: "🧅",
+    b: "ميعاد:مشتل سبتمبر شتل نوفمبر.\nشتلة:60يوم.\nري:كل10ايام قلل قبل حصاد20يوم.\nتسميد:3سوبر+3نترات.\nحصاد:150يوم.\nانتاج:15-20طن.",
+  },
+  {
+    t: "بقر",
+    i: "🐄",
+    b: "سلالة:هولشتاين لبن.\nاكل:علف18% 2% وزنها.\nمية:60-80لتر.\nحليب:ميعاد ثابت.\nتحصين:قلاعية6شهور.\nولادة:9شهور.\nنصيحة:متغيرش علف فجأة.",
+  },
+  {
+    t: "جاموس",
+    i: "🐃",
+    b: "بيحب مية وطين رش مرتين صيف.\nلبن:دهون7%.\nانتاج:8-12كجم.\nتحصين:قلاعية6شهور.\nولادة:10شهور.",
+  },
+  {
+    t: "غنم",
+    i: "🐑",
+    b: "سلالة:رحماني.\nاكل:1.5كجم والدة2كجم.\nولادة:مرتين سنة حمل5شهور.\nتحصين:جدري تسمم طاعون.\nديدان:كل3شهور.",
+  },
+  {
+    t: "ماعز",
+    i: "🐐",
+    b: "انشط من غنم.\nلبن:مفيد دهون قليلة.\nولادة:توأم حمل5شهور.\nتسمين:6شهور بيع عيد.",
+  },
+  {
+    t: "فراخ",
+    i: "🐔",
+    b: "تسمين:35-40يوم 2كجم.\nحرارة:33 اول اسبوع تنزل2.\nاكل:بادي21% نامي19%.\nبياض:نور16س علف16%+كالسيوم.\nتحصين:نيوكاسل7و21 جمبورو14.",
+  },
+  {
+    t: "بط",
+    i: "🦆",
+    b: "اكل:150جم+خضرة.\nدبح:60يوم 3كجم.\nتحصين:طاعون بط.\nبيض:150/سنة.",
+  },
+  {
+    t: "ارانب",
+    i: "🐰",
+    b: "ولادة:كل شهر 8 حمل30يوم.\nاكل:علف+برسيم ناشف ممنوع مبلول.\nتحصين:تسمم دموي6شهور.\nفطام:30يوم بيع شهرين.",
+  },
+  {
+    t: "اسماك",
+    i: "🐟",
+    b: "بلطي اسهل.\nحوض:فدان10الاف.\nمية:نضيفة غير10% اسبوع.\nاكل:علف30% 3% وزن وجبتين.\nحصاد:6شهور 300جم.",
+  },
+  {
+    t: "نحل",
+    i: "🐝",
+    b: "خلية:10براويز مشمس هادي.\nانتاج:10-15كجم عسل.\nفحص:كل10ايام.\nمرض:فاروا شرائط.",
+  },
+  {
+    t: "اعلاف",
+    i: "🌿",
+    b: "تسمين16% حلاب18% بياض16%+كالسيوم.\nبرسيم:احسن شتوي.\nتبن:ناشف مفيهوش عفن.\nتغيير:في7ايام.",
+  },
+];
+
+export default function App() {
+  const [lang, setLang] = useState("ar");
+  const [mode, setMode] = useState("home");
+  const [search, setSearch] = useState("");
+  const [extra, setExtra] = useState([]);
+  const [over, setOver] = useState({});
+  const [libLoad, setLibLoad] = useState(false);
+  const [openId, setOpenId] = useState(null);
+  const [editId, setEditId] = useState(null);
+  const [editTxt, setEditTxt] = useState("");
+  const [chats, setChats] = useState([]);
+  const [activeId, setActiveId] = useState(null);
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [vPrompt, setVPrompt] = useState("");
+  const [vLoad, setVLoad] = useState(false);
+  const [vRes, setVRes] = useState(null);
+  const [vList, setVList] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  const [speechOk, setSpeechOk] = useState(true);
+
+  const ref = useRef(null);
+  const isAr = lang === "ar";
+  const activeChat = chats.find((c) => c.id === activeId);
+
+  const baseLib = DATA.map((d, idx) => ({
+    id: "d" + idx,
+    title: d.t,
+    body: over["d" + idx] || d.b,
+    icon: d.i,
+    fixed: true,
+    edited: !!over["d" + idx],
+  }));
+  const allLib = [...baseLib, ...extra];
+
+  useEffect(() => {
+    loadAll();
+  }, []);
+
+  useEffect(() => {
+    if (loaded) sSave(K2, chats);
+  }, [chats, loaded]);
+
+  useEffect(() => {
+    if (loaded) sSave(K1, extra);
+  }, [extra, loaded]);
+
+  useEffect(() => {
+    if (loaded) sSave(K3, over);
+  }, [over, loaded]);
+
+  useEffect(() => {
+    if (loaded) sSave(K4, vList);
+  }, [vList, loaded]);
+
+  async function loadAll() {
+    try {
+      const a = await sLoad(K2);
+      const b = await sLoad(K1);
+      const c = await sLoad(K3);
+      const d = await sLoad(K4);
+      if (b) setExtra(b || []);
+      if (c) setOver(c || {});
+      if (d) setVList(d || []);
+      if (a && a.length > 0) {
+        setChats(a);
+        setActiveId(a[0].id);
+      } else {
+        newChat(true);
+      }
+    } catch (e) {
+      newChat(true);
+    } finally {
+      setLoaded(true);
+    }
+  }
+
+  function newChat(silent) {
+    const f = {
+      id: uid(),
+      title: isAr ? "محادثة جديدة" : "New chat",
+      messages: [],
+    };
+    setChats((p) => [f, ...p]);
+    setActiveId(f.id);
+    if (!silent) setMode("chat");
+    return f;
+  }
+
+  function delChat(id) {
+    Alert.alert(isAr ? "مسح محادثة" : "Delete", isAr ? "متأكد؟" : "Sure?", [
+      { text: isAr ? "لا" : "No" },
+      {
+        text: isAr ? "مسح" : "Delete",
+        onPress: () => {
+          const r = chats.filter((c) => c.id !== id);
+          if (r.length === 0) {
+            const nf = {
+              id: uid(),
+              title: isAr ? "محادثة جديدة" : "New chat",
+              messages: [],
+            };
+            setChats([nf]);
+            setActiveId(nf.id);
+          } else {
+            setChats(r);
+            if (id === activeId) setActiveId(r[0].id);
+          }
+        },
+      },
+    ]);
+  }
+
+  function speak(t) {
+    if (!t) return;
+    try {
+      if (!Speech || !Speech.speak) {
+        setSpeechOk(false);
+        Alert.alert(
+          "AI8",
+          isAr ? "ثبت expo-speech من Dependencies" : "Install expo-speech"
+        );
+        return;
+      }
+      Speech.stop();
+      Speech.speak(t, { language: isAr ? "ar-EG" : "en-US", rate: 0.95 });
+    } catch (e) {
+      setSpeechOk(false);
+      Alert.alert("AI8", isAr ? "ثبت expo-speech" : "Install expo-speech");
+    }
+  }
+
+  function upChat(id, msgs) {
+    setChats((p) =>
+      p.map((c) =>
+        c.id !== id
+          ? c
+          : { ...c, messages: msgs, title: msgs[0]?.text?.slice(0, 25) || c.title }
+      )
+    );
+  }
+
+  async function askAI(prompt, history) {
+    const r = await fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt, language: lang, history: history || [] }),
+    });
+    const d = await r.json();
+    return d.text || "لا توجد اجابة";
+  }
+
+  async function searchLib(topic) {
+    const q = (topic || search).trim();
+    if (!q || libLoad) return;
+    const f = allLib.find((x) => x.title === q);
+    if (f) {
+      setOpenId(f.id);
+      setMode("library");
+      return;
+    }
+    setLibLoad(true);
+    setMode("library");
+    try {
+      const pr = isAr
+        ? "انت مهندس زراعي ودكتور بيطري خبير في مصر. اشرح بالتفصيل الكامل عن: " +
+          q +
+          " ميعاد تربة تقاوي ري تسميد امراض حصاد انتاج تكلفة نصائح بالعربي المصري."
+        : "Expert farmer vet explain full detail about: " + q;
+      const txt = await askAI(pr, []);
+      const it = { id: uid(), title: q, body: txt, icon: "📚", fixed: false };
+      setExtra((p) => [it, ...p]);
+      setOpenId(it.id);
+    } catch (e) {
+      Alert.alert("AI8", e.message);
+    } finally {
+      setLibLoad(false);
+    }
+  }
+
+  function delLib(id) {
+    Alert.alert(isAr ? "مسح" : "Delete", isAr ? "متأكد؟" : "Sure?", [
+      { text: isAr ? "لا" : "No" },
+      {
+        text: isAr ? "مسح" : "Delete",
+        onPress: () => {
+          if (id.startsWith("d")) {
+            const n = { ...over };
+            delete n[id];
+            setOver(n);
+          } else {
+            setExtra((p) => p.filter((x) => x.id !== id));
+          }
+          if (openId === id) setOpenId(null);
+        },
+      },
+    ]);
+  }
+
+  function saveEdit() {
+    if (!editId) return;
+    if (editId.startsWith("d")) {
+      setOver((p) => ({ ...p, [editId]: editTxt }));
+    } else {
+      setExtra((p) =>
+        p.map((x) => (x.id === editId ? { ...x, body: editTxt } : x))
+      );
+    }
+    setEditId(null);
+    setEditTxt("");
+  }
+
+  async function sendMsg() {
+    const txt = message.trim();
+    if (!txt || loading || !activeChat) return;
+    setMessage("");
+    const cid = activeId;
+    const prev = activeChat.messages;
+    const nm = [...prev, { role: "user", text: txt }];
+    upChat(cid, nm);
+    setLoading(true);
+    try {
+      const hist = nm.slice(-10).map((m) => ({ role: m.role, content: m.text }));
+      const sum = hist
+        .map((h) => (h.role === "user" ? "فلاح: " : "مساعد: ") + h.content)
+        .join("\n");
+      const base = isAr
+        ? "انت دكتور بيطري ومهندس زراعي خبير في مصر. جاوب بالتفصيل بالعربي المصري، وافتكر المحادثة:\n" +
+          sum
+        : "Expert vet answer full detail, remember:\n" + sum;
+      const ans = await askAI(base + "\nالسؤال الجديد: " + txt, hist);
