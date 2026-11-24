@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الغيط - رفيق الفلاح</title>
+<style>
+body{font-family:system-ui;background:#f0fdf4;margin:0;padding:15px}
+h1{text-align:center;color:#166534}
+p{text-align:center;color:#666}
+input{width:100%;padding:15px;border-radius:12px;border:2px solid #22c55e;font-size:18px;box-sizing:border-box}
+button{width:100%;padding:15px;background:#16a34a;color:#fff;border:0;border-radius:12px;font-size:19px;margin-top:10px;font-weight:bold}
+.box{background:#fff;padding:15px;border-radius:12px;margin-top:15px;white-space:pre-wrap;line-height:1.9;font-size:17px;border:1px solid #ddd}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;justify-content:center}
+.chips span{background:#dcfce7;padding:9px 14px;border-radius:20px;cursor:pointer}
+</style>
+</head>
+<body>
+<h1>🌾 الغيط - رفيق الفلاح</h1>
+<p>اسأل عن أي محصول، حيوان، مرض، سعر</p>
+<input id="q" placeholder="مثال: قمح، طماطم، البقرة قاطعة أكل...">
+<button onclick="ask()">اسأل الغيط 🌾</button>
+<div class="chips">
+<span onclick="setQ('قمح')">🌾 قمح</span>
+<span onclick="setQ('طماطم')">🍅 طماطم</span>
+<span onclick="setQ('بطاطس')">🥔 بطاطس</span>
+<span onclick="setQ('بقر حلاب')">🐄 بقر حلاب</span>
+<span onclick="setQ('غنم')">🐑 غنم</span>
+<span onclick="setQ('سعر الطماطم')">💰 الأسعار</span>
+</div>
+<div id="ans" class="box">اسألني عن أي حاجة في الزراعة...</div>
+<script>
+function setQ(t){document.getElementById('q').value=t;ask();}
+async function ask(){
+let q=document.getElementById('q').value;
+if(!q) return;
+document.getElementById('ans').innerText='بفكر... 🌾';
+if(q.includes('قمح')){document.getElementById('ans').innerText='🌾 القمح\n\nيتزرع امتى؟ من 15 نوفمبر لـ 15 ديسمبر\nيقعد قد ايه؟ 160 يوم\nالفدان ينتج كام؟ 18 - 22 أردب\nالري: كل 20 يوم، ووقف الري قبل الحصاد بـ 15 يوم\nالأرض: طينية أو صفراء\nأمراضه: الصدأ الأصفر، المن';return;}
+if(q.includes('طماطم')){document.getElementById('ans').innerText='🍅 الطماطم\n\nتتزرع امتى؟ طول السنة، أحسن وقت مارس وسبتمبر\nتقعد قد ايه؟ 90 - 110 يوم\nالفدان ينتج كام؟ 20 - 30 طن\nالري: كل 5 أيام في الصيف\nأمراضها: اللفحة، الذبابة البيضاء\nلو الورق أصفر: ده نقص حديد أو زيادة ري، قلل الميه ورش حديد';return;}
+if(q.includes('بطاطس')){document.getElementById('ans').innerText='🥔 البطاطس\n\nتتزرع امتى؟ أكتوبر ويناير\nتقعد قد ايه؟ 100 - 120 يوم\nالفدان ينتج كام؟ 12 - 15 طن\nالري: كل 10 أيام';return;}
+if(q.includes('بقر')||q.includes('بقرة')){document.getElementById('ans').innerText='🐄 البقر الحلاب\n\nبياكل ايه؟ برسيم + علف مركز 8 كيلو في اليوم + تبن\nبينتج قد ايه؟ 20 - 25 كيلو لبن في اليوم\nالتطعيم: الحمى القلاعية كل 6 شهور\nلو قاطعة أكل: قيس الحرارة، لو سخنة اديها خافض حرارة وكلم الدكتور';return;}
+if(q.includes('غنم')){document.getElementById('ans').innerText='🐑 الغنم\n\nبياكل ايه؟ برسيم + علف + تبن\nبينتج قد ايه؟ الخروف يوصل 40 كيلو في 6 شهور\nالتطعيم: الجدري والطاعون';return;}
+try{
+let r=await fetch('https://ai8app.onrender.com/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:q})});
+let d=await r.json();
+document.getElementById('ans').innerText=d.reply;
+}catch(e){document.getElementById('ans').innerText='في مشكلة في النت، جرب تاني';}
+}
+</script>
+</body>
+</html>
