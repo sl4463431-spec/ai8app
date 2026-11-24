@@ -11,29 +11,11 @@ import {
   StatusBar,
   Alert,
   ActivityIndicator,
-  Image,
 } from "react-native";
 
-import * as ImagePicker from "expo-image-picker";
 import * as Speech from "expo-speech";
-import { VideoView, useVideoPlayer } from "expo-video";
 
-const API_URL = "https://ai8app.onrender.com/api";
-
-const VideoPreview = ({ uri }) => {
-  const player = useVideoPlayer(uri, (p) => {
-    p.loop = false;
-  });
-
-  return (
-    <VideoView
-      player={player}
-      style={{ width: "100%", height: 230, borderRadius: 12 }}
-      nativeControls
-      contentFit="contain"
-    />
-  );
-};
+const API_URL = "https://ai8app.onrender.com/api/generate";
 
 export default function App() {
   const [page, setPage] = useState("home");
@@ -42,9 +24,6 @@ export default function App() {
   const [result, setResult] = useState("");
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [media, setMedia] = useState(null);
-  const [mediaType, setMediaType] = useState(null);
-  const [resultMedia, setResultMedia] = useState(null);
 
   const T = {
     ar: {
@@ -59,11 +38,6 @@ export default function App() {
       projects: "مشاريعي",
       input: "اكتب فكرتك هنا...",
       generate: "إرسال للذكاء الاصطناعي",
-      chooseImage: "اختيار صورة من الهاتف",
-      chooseVideo: "اختيار فيديو من الهاتف",
-      editImage: "تعديل الصورة بالذكاء الاصطناعي",
-      createVideo: "إنشاء فيديو بالذكاء الاصطناعي",
-      editVideo: "تعديل الفيديو بالذكاء الاصطناعي",
       speak: "تشغيل الصوت",
       stop: "إيقاف الصوت",
       save: "حفظ المشروع",
@@ -74,7 +48,6 @@ export default function App() {
       noProjects: "لا توجد مشاريع محفوظة.",
       error: "تعذر الاتصال بالخادم",
       saved: "تم حفظ المشروع",
-      noMedia: "اختر صورة أو فيديو أولًا",
     },
     en: {
       slogan: "Ideas into Impact",
@@ -88,11 +61,6 @@ export default function App() {
       projects: "My Projects",
       input: "Write your idea here...",
       generate: "Send to AI",
-      chooseImage: "Choose Image",
-      chooseVideo: "Choose Video",
-      editImage: "AI Edit Image",
-      createVideo: "AI Create Video",
-      editVideo: "AI Edit Video",
       speak: "Play Voice",
       stop: "Stop Voice",
       save: "Save Project",
@@ -103,7 +71,6 @@ export default function App() {
       noProjects: "No saved projects",
       error: "Server connection failed",
       saved: "Project saved",
-      noMedia: "Choose media first",
     },
     fr: {
       slogan: "Des idées à l'impact",
@@ -117,11 +84,6 @@ export default function App() {
       projects: "Mes projets",
       input: "Écrivez votre idée ici...",
       generate: "Envoyer à l'IA",
-      chooseImage: "Choisir une image",
-      chooseVideo: "Choisir une vidéo",
-      editImage: "Modifier avec l'IA",
-      createVideo: "Créer une vidéo avec l'IA",
-      editVideo: "Modifier la vidéo avec l'IA",
       speak: "Écouter",
       stop: "Arrêter",
       save: "Enregistrer",
@@ -132,7 +94,6 @@ export default function App() {
       noProjects: "Aucun projet enregistré",
       error: "Connexion au serveur impossible",
       saved: "Projet enregistré",
-      noMedia: "Choisissez un fichier d'abord",
     },
   };
 
@@ -152,48 +113,31 @@ export default function App() {
     setPage(name);
     setInput("");
     setResult("");
-    setMedia(null);
-    setMediaType(null);
-    setResultMedia(null);
   }
 
-  async function chooseMedia(type) {
-    try {
-      const permission =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-      if (!permission.granted) {
-        Alert.alert("AI8", "يرجى السماح للتطبيق بالوصول إلى الصور والفيديوهات.");
-        return;
-      }
-
-      const options = {
-        mediaTypes:
-          type === "image"
-            ? ["images"]
-            : ["videos"],
-        allowsEditing: type === "image",
-        quality: 0.8,
-      };
-
-      const picked = await ImagePicker.launchImageLibraryAsync(options);
-
-      if (picked.canceled || !picked.assets?.length) return;
-
-      setMedia(picked.assets[0]);
-      setMediaType(type);
-      setResultMedia(null);
-      setResult("");
-    } catch (error) {
-      Alert.alert("AI8", error.message);
+  function speak(text) {
+    if (!text || !text.trim()) {
+      Alert.alert("AI8", t.empty);
+      return;
     }
+
+    Speech.stop();
+
+    Speech.speak(text, {
+      language:
+        lang === "ar"
+          ? "ar-SA"
+          : lang === "fr"
+          ? "fr-FR"
+          : "en-US",
+      rate: 0.9,
+      pitch: 1,
+    });
   }
 
   async function generate() {
-    const prompt = input.trim();
-
-    if (!prompt) {
-      Alert.alert(t.empty);
+    if (!input.trim()) {
+      Alert.alert("AI8", t.empty);
       return;
     }
 
@@ -201,11 +145,13 @@ export default function App() {
     setResult("");
 
     try {
-      const response = await fetch(`${API_URL}/generate`, {
+      const response = await fetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
-          prompt,
+          prompt: input.trim(),
           task: page === "writing" ? "writing" : "assistant",
           language: lang,
         }),
@@ -219,7 +165,9 @@ export default function App() {
 
       const answer = data.text || data.answer;
 
-      if (!answer) throw new Error(t.error);
+      if (!answer) {
+        throw new Error(t.error);
+      }
 
       setResult(answer);
     } catch (error) {
@@ -227,90 +175,6 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }
-
-  async function sendMediaTask(task) {
-    if (!media) {
-      Alert.alert("AI8", t.noMedia);
-      return;
-    }
-
-    if (!input.trim()) {
-      Alert.alert("AI8", t.empty);
-      return;
-    }
-
-    setLoading(true);
-    setResult("");
-    setResultMedia(null);
-
-    try {
-      const form = new FormData();
-
-      form.append("prompt", input.trim());
-      form.append("language", lang);
-      form.append("task", task);
-
-      form.append("file", {
-        uri: media.uri,
-        name: media.fileName ||
-          (mediaType === "image" ? "photo.jpg" : "video.mp4"),
-        type: media.mimeType ||
-          (mediaType === "image" ? "image/jpeg" : "video/mp4"),
-      });
-
-      const endpoint =
-        task === "image_edit"
-          ? "/image/edit"
-          : task === "video_edit"
-          ? "/video/edit"
-          : "/video/generate";
-
-      const response = await fetch(`${API_URL}${endpoint}`, {
-        method: "POST",
-        body: form,
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || t.error);
-      }
-
-      setResult(data.text || data.message || "تم استلام النتيجة");
-
-      if (data.imageUrl || data.videoUrl || data.mediaUrl) {
-        setResultMedia({
-          uri: data.imageUrl || data.videoUrl || data.mediaUrl,
-          type: data.videoUrl ? "video" :
-            data.imageUrl ? "image" : data.mediaType,
-        });
-      }
-    } catch (error) {
-      Alert.alert(
-        "AI8",
-        error.message || "خدمة الصور والفيديو غير متصلة بالخادم بعد."
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function speak() {
-    if (!result.trim()) {
-      Alert.alert("AI8", "لا يوجد نص لتشغيله");
-      return;
-    }
-
-    Speech.stop();
-
-    Speech.speak(result, {
-      language:
-        lang === "ar" ? "ar-SA" :
-        lang === "fr" ? "fr-FR" : "en-US",
-      rate: 0.9,
-      pitch: 1,
-    });
   }
 
   function saveProject() {
@@ -337,6 +201,22 @@ export default function App() {
       >
         <Text style={s.btnText}>{label}</Text>
       </TouchableOpacity>
+    );
+  }
+
+  function renderResult() {
+    if (!result) return null;
+
+    return (
+      <View style={s.box}>
+        <Text style={s.boxTitle}>{t.result}</Text>
+
+        <Text style={s.boxText}>{result}</Text>
+
+        {button(t.speak, () => speak(result), true)}
+        {button(t.stop, () => Speech.stop(), true)}
+        {button(t.save, saveProject, true)}
+      </View>
     );
   }
 
@@ -380,38 +260,10 @@ export default function App() {
             <View key={item.id} style={s.box}>
               <Text style={s.boxTitle}>{item.title}</Text>
               <Text style={s.boxText}>{item.content}</Text>
+              {button(t.speak, () => speak(item.content), true)}
             </View>
           ))
         )}
-      </View>
-    );
-  }
-
-  function renderResult() {
-    if (!result && !resultMedia) return null;
-
-    return (
-      <View style={s.box}>
-        <Text style={s.boxTitle}>{t.result}</Text>
-
-        {!!result && (
-          <Text style={s.boxText}>{result}</Text>
-        )}
-
-        {resultMedia?.type === "image" && (
-          <Image
-            source={{ uri: resultMedia.uri }}
-            style={s.preview}
-            resizeMode="contain"
-          />
-        )}
-
-        {resultMedia?.type === "video" && (
-          <VideoPreview uri={resultMedia.uri} />
-        )}
-
-        {!!result && button(t.speak, speak, true)}
-        {!!result && button(t.save, saveProject, true)}
       </View>
     );
   }
@@ -424,6 +276,7 @@ export default function App() {
       return (
         <View style={s.box}>
           <Text style={s.boxTitle}>{t.voice}</Text>
+
           <TextInput
             style={s.input}
             value={input}
@@ -432,77 +285,9 @@ export default function App() {
             placeholderTextColor="#8794AD"
             multiline
           />
-          {button(t.speak, () => {
-            if (!input.trim()) {
-              Alert.alert("AI8", t.empty);
-              return;
-            }
-            Speech.stop();
-            Speech.speak(input, {
-              language:
-                lang === "ar" ? "ar-SA" :
-                lang === "fr" ? "fr-FR" : "en-US",
-            });
-          })}
+
+          {button(t.speak, () => speak(input))}
           {button(t.stop, () => Speech.stop(), true)}
-        </View>
-      );
-    }
-
-    if (page === "image") {
-      return (
-        <View>
-          <Text style={s.title}>{t.image}</Text>
-
-          {button(t.chooseImage, () => chooseMedia("image"))}
-
-          {media && mediaType === "image" && (
-            <Image
-              source={{ uri: media.uri }}
-              style={s.preview}
-              resizeMode="contain"
-            />
-          )}
-
-          <TextInput
-            style={s.input}
-            value={input}
-            onChangeText={setInput}
-            placeholder="اكتب كيف تريد تعديل الصورة..."
-            placeholderTextColor="#8794AD"
-            multiline
-          />
-
-          {button(t.editImage, () => sendMediaTask("image_edit"))}
-          {renderResult()}
-        </View>
-      );
-    }
-
-    if (page === "video") {
-      return (
-        <View>
-          <Text style={s.title}>{t.video}</Text>
-
-          {button(t.chooseVideo, () => chooseMedia("video"))}
-
-          {media && mediaType === "video" && (
-            <VideoPreview uri={media.uri} />
-          )}
-
-          <TextInput
-            style={s.input}
-            value={input}
-            onChangeText={setInput}
-            placeholder="اكتب وصف الفيديو أو التعديل المطلوب..."
-            placeholderTextColor="#8794AD"
-            multiline
-          />
-
-          {button(t.createVideo, () => sendMediaTask("video_generate"))}
-          {button(t.editVideo, () => sendMediaTask("video_edit"), true)}
-
-          {renderResult()}
         </View>
       );
     }
@@ -510,6 +295,14 @@ export default function App() {
     return (
       <View>
         <Text style={s.title}>{t[page]}</Text>
+
+        {(page === "image" || page === "video") && (
+          <Text style={s.info}>
+            {lang === "ar"
+              ? "هذه الخدمة تحتاج إلى ربط مزود متخصص بالخادم."
+              : "This service requires an external AI provider."}
+          </Text>
+        )}
 
         <TextInput
           style={s.input}
@@ -522,7 +315,7 @@ export default function App() {
         />
 
         <TouchableOpacity
-          style={[s.btn, loading && { opacity: 0.6 }]}
+          style={s.btn}
           onPress={generate}
           disabled={loading}
         >
@@ -712,13 +505,6 @@ const s = StyleSheet.create({
   },
   boxText: { color: "#FFF", fontSize: 15, lineHeight: 25 },
   info: { color: "#D0DCEC", fontSize: 15, lineHeight: 24 },
-  preview: {
-    width: "100%",
-    height: 250,
-    borderRadius: 12,
-    marginVertical: 12,
-    backgroundColor: "#071329",
-  },
   back: {
     alignSelf: "flex-start",
     backgroundColor: "#17385F",
