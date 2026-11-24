@@ -1,37 +1,461 @@
-import React,{useState,useEffect,useRef} from "react";
-import {SafeAreaView,View,Text,TextInput,TouchableOpacity,ScrollView,StyleSheet,ActivityIndicator,KeyboardAvoidingView,Platform,Alert,StatusBar} from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-const API_URL="https://ai8app.onrender.com/api/generate";
-const STORAGE_KEY="AI8_CHATS";
-const TRIALS_KEY="AI8_VIDEO_TRIALS";
-const T={
-ar:{new:"＋ جديد",chats:"محادثاتك",new2:"＋ محادثة جديدة",welcome:"أهلاً بيك 👋",sub:"مساعدك الذكي، اسألني أي حاجة",ask:"اسأل AI8 أي حاجة...",think:"AI8 بيفكر...",you:"أنت",copy:"📋 نسخ",regen:"🔄 إعادة الرد",chat:"💬 شات",video:"🎬 فيديو",vTitle:"ولد فيديو",vDesc:"اكتب وصف الفيديو اللي عايز تعمله...",style:"الستايل:",gen:"✨ ولد فيديو",gening:"بيتم توليد الفيديو... حوالي 30 ثانية",left:"متبقي لك",free:"محاولات مجانية",no:"خلصت محاولاتك المجانية، الدفع هيتوفر قريباً",done:"✅ تم توليد الفيديو التجريبي! في النسخة الكاملة هينزل هنا فيديو حقيقي.",ph:"مثال: مدينة مستقبلية بالليل، مطر، إضاءة نيون",need:"اكتب وصف الفيديو الأول",foot:"AI8 © 2026 • قد يخطئ الذكاء الاصطناعي"},
-fr:{new:"＋ Nouveau",chats:"Vos chats",new2:"＋ Nouveau chat",welcome:"Bienvenue 👋",sub:"Votre assistant intelligent",ask:"Demandez à AI8...",think:"AI8 réfléchit...",you:"Vous",copy:"📋 Copier",regen:"🔄 Régénérer",chat:"💬 Chat",video:"🎬 Vidéo",vTitle:"Générer Vidéo",vDesc:"Décrivez la vidéo...",style:"Style:",gen:"✨ Générer Vidéo",gening:"Génération... environ 30s",left:"Il vous reste",free:"essais gratuits",no:"Essais terminés, paiement bientôt",done:"✅ Vidéo démo générée ! La vraie vidéo apparaîtra ici.",ph:"Ex: ville futuriste la nuit, pluie, néons",need:"Écrivez la description",foot:"AI8 © 2026 • L'IA peut faire des erreurs"},
-en:{new:"＋ New",chats:"Your chats",new2:"＋ New chat",welcome:"Welcome 👋",sub:"Your smart assistant",ask:"Ask AI8 anything...",think:"AI8 is thinking...",you:"You",copy:"📋 Copy",regen:"🔄 Regenerate",chat:"💬 Chat",video:"🎬 Video",vTitle:"Generate Video",vDesc:"Describe the video...",style:"Style:",gen:"✨ Generate Video",gening:"Generating... about 30s",left:"You have",free:"free trials left",no:"Free trials finished, payment coming soon",done:"✅ Demo video generated! Real video will appear here.",ph:"Ex: futuristic city at night, rain, neon",need:"Write description first",foot:"AI8 © 2026 • AI can make mistakes"}
-};
-const SUG={ar:["اكتب لي مقال احترافي","اشرح لي درس صعب","ساعدني في كتابة كود","ترجم لي نص"],fr:["Écris un article pro","Explique-moi une leçon","Aide-moi à coder","Traduis un texte"],en:["Write a pro article","Explain a hard lesson","Help me with code","Translate a text"]};
-const STYLES=[{id:"cinematic",ar:"🎬 سينمائي",fr:"🎬 Cinématique",en:"🎬 Cinematic"},{id:"animation",ar:"🎨 رسوم متحركة",fr:"🎨 Animation",en:"🎨 Animation"},{id:"realistic",ar:"📷 واقعي",fr:"📷 Réaliste",en:"📷 Realistic"},{id:"art",ar:"✨ فني",fr:"✨ Art",en:"✨ Art"}];
-export default function App(){
-const [chats,setChats]=useState([]);const [activeId,setActiveId]=useState(null);const [message,setMessage]=useState("");const [loading,setLoading]=useState(false);const [menuOpen,setMenuOpen]=useState(false);const scrollRef=useRef(null);const activeChat=chats.find(c=>c.id===activeId);
-const [lang,setLang]=useState("ar");const [mode,setMode]=useState("chat");const [videoPrompt,setVideoPrompt]=useState("");const [videoStyle,setVideoStyle]=useState("cinematic");const [videoLoading,setVideoLoading]=useState(false);const [videoResult,setVideoResult]=useState(null);const [trials,setTrials]=useState(3);
-const t=T[lang];
-useEffect(()=>{loadChats();loadTrials();},[]);
-useEffect(()=>{AsyncStorage.setItem(STORAGE_KEY,JSON.stringify(chats)).catch(()=>{});},[chats]);
-async function loadTrials(){try{const s=await AsyncStorage.getItem(TRIALS_KEY);if(s!==null)setTrials(parseInt(s));}catch(e){}}
-async function loadChats(){try{const saved=await AsyncStorage.getItem(STORAGE_KEY);if(saved){const d=JSON.parse(saved);if(Array.isArray(d)&&d.length>0){setChats(d);setActiveId(d[0].id);return;}}}catch(e){}const f={id:Date.now(),title:"محادثة جديدة",messages:[]};setChats([f]);setActiveId(f.id);}
-function newChat(){const c={id:Date.now(),title:"محادثة جديدة",messages:[]};setChats(p=>[c,...p]);setActiveId(c.id);setMenuOpen(false);}
-function changeChat(id){setActiveId(id);setMenuOpen(false);}
-function deleteChat(id){if(chats.length===1){Alert.alert("تنبيه","لازم تفضل محادثة واحدة");return;}const r=chats.filter(c=>c.id!==id);setChats(r);if(activeId===id)setActiveId(r[0].id);}
-function updateChat(id,messages){setChats(p=>p.map(c=>{if(c.id!==id)return c;const fu=messages.find(m=>m.role==="user");const title=c.title==="محادثة جديدة"&&fu?fu.text.slice(0,28):c.title;return{...c,title,messages};}));}
-async function sendMessage(ov){const text=(ov??message).trim();if(!text||loading||!activeChat)return;setMessage("");const cid=activeId;const prev=activeChat.messages;const nm=[...prev,{role:"user",text}];updateChat(cid,nm);setLoading(true);try{const res=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt:text,language:lang,history:nm.slice(-10)})});const data=await res.json();if(!res.ok)throw new Error(data.error||"حدث خطأ في السيرفر");updateChat(cid,[...nm,{role:"assistant",text:data.text||"لم يصل رد"}]);}catch(e){updateChat(cid,[...nm,{role:"assistant",text:"⚠️ "+(e.message||"تعذر الاتصال")} ]);}finally{setLoading(false);}}
-function regenerate(){if(!activeChat||loading)return;const ms=activeChat.messages;const lu=[...ms].reverse().find(m=>m.role==="user");if(!lu)return;const fx=ms[ms.length-1]?.role==="assistant"?ms.slice(0,-1):ms;updateChat(activeId,fx);setTimeout(()=>sendMessage(lu.text),300);}
-async function generateVideo(){if(!videoPrompt.trim()){Alert.alert("AI8",t.need);return;}if(trials<=0){Alert.alert("AI8",t.no);return;}setVideoLoading(true);setVideoResult(null);setTimeout(async()=>{const nt=trials-1;setTrials(nt);await AsyncStorage.setItem(TRIALS_KEY,String(nt));setVideoResult(t.done);setVideoLoading(false);},3000);}
-return(
-<SafeAreaView style={s.container}><StatusBar barStyle="light-content"/>
-<View style={s.header}><TouchableOpacity onPress={()=>setMenuOpen(!menuOpen)}><Text style={s.icon}>☰</Text></TouchableOpacity><Text style={s.logo}>AI8 ✨</Text><TouchableOpacity onPress={newChat} style={s.newBtn}><Text style={s.newTxt}>{t.new}</Text></TouchableOpacity></View>
-<View style={s.langRow}><TouchableOpacity onPress={()=>setLang("ar")} style={[s.langBtn,lang==="ar"&&s.langOn]}><Text style={s.langTxt}>العربية</Text></TouchableOpacity><TouchableOpacity onPress={()=>setLang("fr")} style={[s.langBtn,lang==="fr"&&s.langOn]}><Text style={s.langTxt}>Français</Text></TouchableOpacity><TouchableOpacity onPress={()=>setLang("en")} style={[s.langBtn,lang==="en"&&s.langOn]}><Text style={s.langTxt}>English</Text></TouchableOpacity></View>
-<View style={s.tabs}><TouchableOpacity onPress={()=>setMode("chat")} style={[s.tab,mode==="chat"&&s.tabOn]}><Text style={s.tabTxt}>{t.chat}</Text></TouchableOpacity><TouchableOpacity onPress={()=>setMode("video")} style={[s.tab,mode==="video"&&s.tabOn]}><Text style={s.tabTxt}>{t.video}</Text></TouchableOpacity></View>
-{menuOpen&&mode==="chat"&&(<View style={s.sidebar}><TouchableOpacity onPress={newChat}><Text style={s.menuTitle}>{t.new2}</Text></TouchableOpacity><Text style={s.secTitle}>{t.chats}</Text><ScrollView style={{maxHeight:250}}>{chats.map(chat=>(<View key={chat.id} style={s.chatItem}><TouchableOpacity style={{flex:1}} onPress={()=>changeChat(chat.id)}><Text style={s.chatTitle} numberOfLines={1}>💬 {chat.title}</Text></TouchableOpacity><TouchableOpacity onPress={()=>deleteChat(chat.id)}><Text style={s.del}>🗑️</Text></TouchableOpacity></View>))}</ScrollView></View>)}
-{mode==="chat"?(
-<><ScrollView ref={scrollRef} style={s.chat} contentContainerStyle={s.chatContent} onContentSizeChange={()=>scrollRef.current?.scrollToEnd({animated:true})}>
-{(!activeChat||activeChat.messages.length===0)&&(<View style={s.welcome}><Text style={s.wLogo}>AI8</Text><Text style={s.wTitle}>{t.welcome}</Text><Text style={s.sub}>{t.sub}</Text>{SUG[lang].map((it,i)=>(<TouchableOpacity key={i} style={s.sug} onPress={()=>sendMessage(it)}><Text style={s.sugTxt}>{it}</Text></TouchableOpacity>))}</View
+import React from "react";
+import { useState } from "react";
+import { useEffect } from "react";
+import { useRef } from "react";
+import {
+  SafeAreaView,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+  StatusBar
+} from "react-native";
+import AsyncStorage
+from "@react-native-async-storage/async-storage";
+
+const API_URL =
+"https://ai8app.onrender.com/api/generate";
+const KEY = "AI8_CHATS";
+const TRIALS_KEY = "AI8_TRIALS";
+
+export default function App() {
+  const [chats, setChats] =
+  useState([]);
+  const [activeId, setActiveId] =
+  useState(null);
+  const [message, setMessage] =
+  useState("");
+  const [loading, setLoading] =
+  useState(false);
+  const [menuOpen, setMenuOpen] =
+  useState(false);
+  const [lang, setLang] =
+  useState("ar");
+  const [mode, setMode] =
+  useState("chat");
+  const [vPrompt, setVPrompt] =
+  useState("");
+  const [vStyle, setVStyle] =
+  useState("cinematic");
+  const [vLoading, setVLoading] =
+  useState(false);
+  const [vResult, setVResult] =
+  useState(null);
+  const [trials, setTrials] =
+  useState(3);
+  const scrollRef = useRef(null);
+
+  const activeChat = chats.find(
+    (c) => c.id === activeId
+  );
+
+  const isAr = lang === "ar";
+  const isFr = lang === "fr";
+
+  const txt = {
+    welcome: isAr
+      ? "أهلاً بيك 👋"
+      : isFr
+      ? "Bienvenue 👋"
+      : "Welcome 👋",
+    sub: isAr
+      ? "مساعدك الذكي"
+      : isFr
+      ? "Votre assistant"
+      : "Your assistant",
+    ask: isAr
+      ? "اسأل AI8..."
+      : isFr
+      ? "Demandez..."
+      : "Ask AI8...",
+    think: isAr
+      ? "AI8 بيفكر..."
+      : isFr
+      ? "AI8 réfléchit..."
+      : "AI8 thinking...",
+    chatBtn: isAr
+      ? "💬 شات"
+      : isFr
+      ? "💬 Chat"
+      : "💬 Chat",
+    videoBtn: isAr
+      ? "🎬 فيديو"
+      : isFr
+      ? "🎬 Vidéo"
+      : "🎬 Video",
+    gen: isAr
+      ? "✨ ولد فيديو"
+      : isFr
+      ? "✨ Générer Vidéo"
+      : "✨ Generate Video",
+    gening: isAr
+      ? "بيتم التوليد..."
+      : "Generating...",
+    done: isAr
+      ? "✅ تم توليد الفيديو التجريبي!"
+      : isFr
+      ? "✅ Vidéo démo générée!"
+      : "✅ Demo video done!",
+    need: isAr
+      ? "اكتب وصف الفيديو"
+      : "Write description",
+  };
+
+  useEffect(() => {
+    loadChats();
+    loadTrials();
+  }, []);
+
+  useEffect(() => {
+    AsyncStorage.setItem(
+      KEY,
+      JSON.stringify(chats)
+    ).catch(() => {});
+  }, [chats]);
+
+  async function loadTrials() {
+    try {
+      const s = await AsyncStorage
+        .getItem(TRIALS_KEY);
+      if (s !== null) {
+        setTrials(parseInt(s));
+      }
+    } catch (e) {}
+  }
+
+  async function loadChats() {
+    try {
+      const saved = await AsyncStorage
+        .getItem(KEY);
+      if (saved) {
+        const d = JSON.parse(saved);
+        if (d.length > 0) {
+          setChats(d);
+          setActiveId(d[0].id);
+          return;
+        }
+      }
+    } catch (e) {}
+    const f = {
+      id: Date.now(),
+      title: "محادثة جديدة",
+      messages: [],
+    };
+    setChats([f]);
+    setActiveId(f.id);
+  }
+
+  function newChat() {
+    const c = {
+      id: Date.now(),
+      title: "محادثة جديدة",
+      messages: [],
+    };
+    setChats((p) => [c, ...p]);
+    setActiveId(c.id);
+    setMenuOpen(false);
+  }
+
+  function changeChat(id) {
+    setActiveId(id);
+    setMenuOpen(false);
+  }
+
+  function deleteChat(id) {
+    if (chats.length === 1) {
+      Alert.alert(
+        "تنبيه",
+        "لازم تفضل محادثة واحدة"
+      );
+      return;
+    }
+    const r = chats.filter(
+      (c) => c.id !== id
+    );
+    setChats(r);
+    if (activeId === id) {
+      setActiveId(r[0].id);
+    }
+  }
+
+  function updateChat(id, msgs) {
+    setChats((p) =>
+      p.map((c) => {
+        if (c.id !== id) return c;
+        const fu = msgs.find(
+          (m) => m.role === "user"
+        );
+        let title = c.title;
+        if (
+          c.title === "محادثة جديدة" &&
+          fu
+        ) {
+          title = fu.text.slice(0, 28);
+        }
+        return {
+          ...c,
+          title,
+          messages: msgs,
+        };
+      })
+    );
+  }
+
+  async function sendMessage(ov) {
+    const text = (ov ?? message).trim();
+    if (!text) return;
+    if (loading) return;
+    if (!activeChat) return;
+    setMessage("");
+    const cid = activeId;
+    const prev = activeChat.messages;
+    const nm = [
+      ...prev,
+      { role: "user", text },
+    ];
+    updateChat(cid, nm);
+    setLoading(true);
+    try {
+      const res = await fetch(
+        API_URL,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            prompt: text,
+            language: lang,
+            history: nm.slice(-10),
+          }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error("خطأ في السيرفر");
+      }
+      updateChat(cid, [
+        ...nm,
+        {
+          role: "assistant",
+          text: data.text || "لم يصل رد",
+        },
+      ]);
+    } catch (e) {
+      updateChat(cid, [
+        ...nm,
+        {
+          role: "assistant",
+          text: "⚠️ " + e.message,
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function regenerate() {
+    if (!activeChat) return;
+    if (loading) return;
+    const ms = activeChat.messages;
+    const lu = [...ms]
+      .reverse()
+      .find((m) => m.role === "user");
+    if (!lu) return;
+    let fx = ms;
+    if (
+      ms[ms.length - 1]?.role ===
+      "assistant"
+    ) {
+      fx = ms.slice(0, -1);
+    }
+    updateChat(activeId, fx);
+    setTimeout(() => {
+      sendMessage(lu.text);
+    }, 300);
+  }
+
+  function generateVideo() {
+    if (!vPrompt.trim()) {
+      Alert.alert("AI8", txt.need);
+      return;
+    }
+    if (trials <= 0) {
+      Alert.alert(
+        "AI8",
+        "خلصت المحاولات المجانية"
+      );
+      return;
+    }
+    setVLoading(true);
+    setVResult(null);
+    setTimeout(async () => {
+      const nt = trials - 1;
+      setTrials(nt);
+      await AsyncStorage.setItem(
+        TRIALS_KEY,
+        String(nt)
+      );
+      setVResult(txt.done);
+      setVLoading(false);
+    }, 3000);
+  }
+
+  return (
+    <SafeAreaView
+      style={s.container}
+    >
+      <StatusBar
+        barStyle="light-content"
+      />
+      <View style={s.header}>
+        <TouchableOpacity
+          onPress={() =>
+            setMenuOpen(!menuOpen)
+          }
+        >
+          <Text style={s.icon}>
+            ☰
+          </Text>
+        </TouchableOpacity>
+        <Text style={s.logo}>
+          AI8 ✨
+        </Text>
+        <TouchableOpacity
+          onPress={newChat}
+          style={s.newBtn}
+        >
+          <Text style={s.newTxt}>
+            ＋ جديد
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={s.langRow}>
+        <TouchableOpacity
+          onPress={() => setLang("ar")}
+          style={[
+            s.langBtn,
+            lang === "ar" && s.langOn,
+          ]}
+        >
+          <Text style={s.langTxt}>
+            العربية
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setLang("fr")}
+          style={[
+            s.langBtn,
+            lang === "fr" && s.langOn,
+          ]}
+        >
+          <Text style={s.langTxt}>
+            Français
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setLang("en")}
+          style={[
+            s.langBtn,
+            lang === "en" && s.langOn,
+          ]}
+        >
+          <Text style={s.langTxt}>
+            English
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={s.tabs}>
+        <TouchableOpacity
+          onPress={() => setMode("chat")}
+          style={[
+            s.tab,
+            mode === "chat" && s.tabOn,
+          ]}
+        >
+          <Text style={s.tabTxt}>
+            {txt.chatBtn}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setMode("video")}
+          style={[
+            s.tab,
+            mode === "video" && s.tabOn,
+          ]}
+        >
+          <Text style={s.tabTxt}>
+            {txt.videoBtn}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {mode === "chat" ? (
+        <View style={{ flex: 1 }}>
+          <ScrollView
+            ref={scrollRef}
+            style={s.chat}
+            contentContainerStyle={
+              s.chatContent
+            }
+            onContentSizeChange={() => {
+              scrollRef.current?.scrollToEnd({
+                animated: true,
+              });
+            }}
+          >
+            {(!activeChat ||
+              activeChat.messages.length ===
+                0) && (
+              <View style={s.welcome}>
+                <Text style={s.wLogo}>
+                  AI8
+                </Text>
+                <Text style={s.wTitle}>
+                  {txt.welcome}
+                </Text>
+                <Text style={s.sub}>
+                  {txt.sub}
+                </Text>
+              </View>
+            )}
+            {activeChat?.messages.map(
+              (it, i) => (
+                <View
+                  key={i}
+                  style={[
+                    s.msg,
+                    it.role === "user"
+                      ? s.uMsg
+                      : s.aiMsg,
+                  ]}
+                >
+                  <Text style={s.msgTxt}>
+                    {it.text}
+                  </Text>
+                  {it.role ===
+                    "assistant" && (
+                    <TouchableOpacity
+                      onPress={regenerate}
+                    >
+                      <Text style={s.actTxt}>
+                        🔄 إعادة الرد
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )
+            )}
+            {loading && (
+              <View style={s.loading}>
+                <ActivityIndicator
+                  color="#36D6B2
