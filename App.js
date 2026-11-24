@@ -18,10 +18,10 @@ import * as Speech from "expo-speech";
 
 const API = "https://onrender.com";
 const APIV = "https://onrender.com-video";
-const K1 = "AI8_LIB_V3",
-  K2 = "AI8_FARM_V3",
-  K3 = "AI8_OVR_V3",
-  K4 = "AI8_VIDS_V3";
+const K1 = "AI8_LIB_V3";
+const K2 = "AI8_FARM_V3";
+const K3 = "AI8_OVR_V3";
+const K4 = "AI8_VIDS_V3";
 
 function uid() {
   return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
@@ -265,7 +265,11 @@ export default function App() {
       p.map((c) =>
         c.id !== id
           ? c
-          : { ...c, messages: msgs, title: msgs[0]?.text?.slice(0, 25) || c.title }
+          : {
+              ...c,
+              messages: msgs,
+              title: msgs[0]?.text?.slice(0, 25) || c.title,
+            }
       )
     );
   }
@@ -358,4 +362,3 @@ export default function App() {
         ? "انت دكتور بيطري ومهندس زراعي خبير في مصر. جاوب بالتفصيل بالعربي المصري، وافتكر المحادثة:\n" +
           sum
         : "Expert vet answer full detail, remember:\n" + sum;
-      const ans = await askAI(base + "\nالسؤال الجديد: " + txt, hist);
