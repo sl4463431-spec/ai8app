@@ -1,0 +1,211 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI8 - الذكاء الاصطناعي</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#10111b;color:white;font-family:Arial,sans-serif}
+header{background:#1b1d2b;padding:20px;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:32px;font-weight:bold;color:#927cff}
+.layout{display:flex;min-height:90vh}
+aside{width:220px;background:#171925;padding:15px}
+nav button{display:block;width:100%;padding:15px;margin-bottom:8px;border:0;border-radius:10px;background:transparent;color:white;text-align:right;cursor:pointer}
+nav button.active,nav button:hover{background:#5544a5}
+main{flex:1;padding:25px;max-width:1000px;margin:auto;width:100%}
+h1{font-size:28px}
+.card{background:#1b1d2b;padding:20px;border-radius:15px;margin:15px 0}
+textarea{width:100%;min-height:120px;background:#10111b;color:white;border:1px solid #414258;border-radius:10px;padding:15px;font-size:16px}
+button.primary{background:#8067ff;color:white;border:0;padding:14px 22px;border-radius:10px;margin-top:12px;cursor:pointer}
+button:disabled{opacity:.5}
+.muted{color:#aaa;line-height:1.8}
+.message{padding:14px;margin:10px 0;border-radius:12px;white-space:pre-wrap;line-height:1.8}
+.user{background:#42358a}
+.ai{background:#292b3b}
+.result{white-space:pre-wrap;line-height:1.9}
+.page.hidden{display:none}
+@media(max-width:700px){
+.layout{display:block}
+aside{width:100%;overflow-x:auto}
+nav{display:flex;gap:5px}
+nav button{min-width:110px;text-align:center}
+main{padding:15px}
+}
+</style>
+</head>
+<body>
+<header>
+<div><div class="logo">AI8 ✨</div><div class="muted">من فكرة إلى تأثير</div></div>
+<div>منصتك للذكاء الاصطناعي</div>
+</header>
+
+<div class="layout">
+<aside>
+<nav>
+<button class="active" data-page="chat">🤖 المساعد الذكي</button>
+<button data-page="writing">✍️ الكتابة</button>
+<button data-page="images">🖼️ الصور</button>
+<button data-page="video">🎬 الفيديو</button>
+<button data-page="voice">🎙️ الصوت</button>
+<button data-page="projects">📁 مشاريعي</button>
+<button data-page="admin">⚙️ المدير</button>
+</nav>
+</aside>
+
+<main>
+<section id="chat" class="page">
+<h1>المساعد الذكي 🤖</h1>
+<p class="muted">اسأل AI8 عن أي شيء.</p>
+<div class="card">
+<div id="messages"><div class="message ai">أهلاً بك في AI8! كيف أقدر أساعدك؟</div></div>
+<textarea id="chatInput" placeholder="اكتب رسالتك هنا..."></textarea>
+<button class="primary" id="sendBtn">إرسال الرسالة</button>
+</div>
+</section>
+
+<section id="writing" class="page hidden">
+<h1>✍️ كتابة المحتوى</h1>
+<p class="muted">أنشئ المقالات والإعلانات والمنشورات.</p>
+<div class="card">
+<textarea id="writingInput" placeholder="اكتب طلبك هنا..."></textarea>
+<button class="primary toolBtn" data-task="writing">إنشاء المحتوى</button>
+<div id="writingResult" class="result"></div>
+</div>
+</section>
+
+<section id="images" class="page hidden">
+<h1>🖼️ إنشاء الصور</h1>
+<div class="card">
+<textarea id="imagesInput" placeholder="صف الصورة التي تريد إنشاءها..."></textarea>
+<button class="primary toolBtn" data-task="images">تنفيذ الطلب</button>
+<div id="imagesResult" class="result"></div>
+</div>
+</section>
+
+<section id="video" class="page hidden">
+<h1>🎬 إنشاء الفيديو</h1>
+<div class="card">
+<textarea id="videoInput" placeholder="اكتب فكرة الفيديو..."></textarea>
+<button class="primary toolBtn" data-task="video">إنشاء السيناريو</button>
+<div id="videoResult" class="result"></div>
+</div>
+</section>
+
+<section id="voice" class="page hidden">
+<h1>🎙️ الصوت والتعليق</h1>
+<div class="card">
+<textarea id="voiceInput" placeholder="اكتب النص الصوتي..."></textarea>
+<button class="primary toolBtn" data-task="voice">تجهيز النص</button>
+<div id="voiceResult" class="result"></div>
+</div>
+</section>
+
+<section id="projects" class="page hidden">
+<h1>📁 مشاريعي</h1>
+<div id="projectList"></div>
+</section>
+
+<section id="admin" class="page hidden">
+<h1>⚙️ لوحة المدير</h1>
+<div class="card">
+<p>مرحباً بك في إدارة AI8.</p>
+<p class="muted">هذه واجهة أولية، وتحتاج لوحة الإدارة الفعلية إلى تسجيل دخول وقاعدة بيانات وصلاحيات آمنة.</p>
+</div>
+</section>
+</main>
+</div>
+
+<script>
+const API_URL="https://ai8app.onrender.com/api/generate";
+const projects=[];
+
+document.querySelectorAll("nav button").forEach(button=>{
+button.addEventListener("click",()=>{
+document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+button.classList.add("active");
+document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));
+document.getElementById(button.dataset.page).classList.remove("hidden");
+});
+});
+
+async function askAI(prompt,task){
+const response=await fetch(API_URL,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({prompt,task,language:"ar"})
+});
+const data=await response.json();
+if(!response.ok)throw new Error(data.error||"حدث خطأ");
+return data.text||data.answer||"لا توجد نتيجة";
+}
+
+document.getElementById("sendBtn").addEventListener("click",async()=>{
+const input=document.getElementById("chatInput");
+const prompt=input.value.trim();
+if(!prompt)return;
+const messages=document.getElementById("messages");
+const user=document.createElement("div");
+user.className="message user";
+user.textContent=prompt;
+messages.appendChild(user);
+input.value="";
+const btn=document.getElementById("sendBtn");
+btn.disabled=true;
+btn.textContent="جاري التفكير...";
+try{
+const answer=await askAI(prompt,"assistant");
+const ai=document.createElement("div");
+ai.className="message ai";
+ai.textContent=answer;
+messages.appendChild(ai);
+}catch(error){
+const ai=document.createElement("div");
+ai.className="message ai";
+ai.textContent="خطأ: "+error.message;
+messages.appendChild(ai);
+}
+btn.disabled=false;
+btn.textContent="إرسال الرسالة";
+});
+
+document.querySelectorAll(".toolBtn").forEach(button=>{
+button.addEventListener("click",async()=>{
+const task=button.dataset.task;
+const input=document.getElementById(task+"Input");
+const output=document.getElementById(task+"Result");
+const prompt=input.value.trim();
+if(!prompt){alert("اكتب طلبك أولاً");return;}
+button.disabled=true;
+button.textContent="جاري التنفيذ...";
+try{
+const answer=await askAI(prompt,task);
+output.textContent=answer;
+projects.unshift({prompt,answer});
+renderProjects();
+}catch(error){
+output.textContent="خطأ: "+error.message;
+}
+button.disabled=false;
+button.textContent="تنفيذ الطلب";
+});
+});
+
+function renderProjects(){
+const list=document.getElementById("projectList");
+list.innerHTML="";
+projects.forEach(project=>{
+const card=document.createElement("div");
+card.className="card";
+const title=document.createElement("h3");
+title.textContent=project.prompt;
+const result=document.createElement("p");
+result.textContent=project.answer;
+card.append(title,result);
+list.appendChild(card);
+});
+}
+</script>
+</body>
+</html>
