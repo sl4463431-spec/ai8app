@@ -3,154 +3,158 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>الغيط - رفيق الفلاح</title>
+<title>AI الفلاح</title>
 <style>
-body{font-family:system-ui;background:#f0fdf4;margin:0;padding:12px}
-h1{text-align:center;color:#166534;margin:5px}
-p{text-align:center;color:#666}
-input,select{width:100%;padding:13px;border-radius:12px;border:2px solid #22c55e;font-size:17px;box-sizing:border-box;margin-top:8px}
-button{width:100%;padding:14px;background:#16a34a;color:#fff;border:0;border-radius:12px;font-size:18px;margin-top:10px;font-weight:bold}
-button.b2{background:#0ea5e9} button.b3{background:#f59e0b}
-.box{background:#fff;padding:15px;border-radius:12px;margin-top:12px;white-space:pre-wrap;line-height:1.9;font-size:16px;border:1px solid #ddd}
-.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px;justify-content:center}
-.chips span{background:#dcfce7;padding:8px 12px;border-radius:20px;cursor:pointer;font-size:14px}
-.card{background:#fff;border:1px solid #ddd;border-radius:12px;padding:12px;margin-top:12px}
-.card h3{margin:0;color:#166534}
-.small{color:#666;font-size:14px}
-table{width:100%;border-collapse:collapse;margin-top:8px}
-td{border:1px solid #ddd;padding:8px;font-size:14px}
+*{box-sizing:border-box}
+body{font-family:system-ui;background:#f1f5f2;margin:0;padding-bottom:100px}
+.top{background:linear-gradient(135deg,#052e16,#14532d 55%,#16a34a);color:#fff;padding:22px 18px 34px;border-radius:0 0 28px 28px;position:relative}
+.top h1{margin:0;font-size:29px}
+.top p{margin:6px 0 0;opacity:.85;font-size:13px}
+.top .pill{background:rgba(255,255,255,.18);display:inline-block;padding:6px 12px;border-radius:20px;font-size:12px;margin-top:10px}
+.searchbar{background:#fff;margin:-18px 16px 0;padding:10px;border-radius:16px;display:flex;gap:8px;box-shadow:0 8px 20px rgba(0,0,0,.1);position:relative;z-index:2}
+.searchbar input{flex:1;border:0;outline:none;font-size:16px;padding:8px}
+.searchbar button{border:0;background:#16a34a;color:#fff;padding:10px 16px;border-radius:12px;font-weight:bold}
+.quick{display:flex;gap:8px;padding:12px 16px;overflow-x:auto}
+.quick span{background:#fff;border:1px solid #e5e7eb;padding:8px 14px;border-radius:20px;font-size:13px;white-space:nowrap;cursor:pointer}
+.quick span.on{background:#166534;color:#fff;border-color:#166534}
+.section{padding:0 16px}
+.section h3{margin:14px 0 8px;color:#14532d;font-size:16px}
+.card{background:#fff;border-radius:20px;padding:16px;box-shadow:0 4px 14px rgba(0,0,0,.05);margin-bottom:12px}
+.card h3{margin:0 0 6px;color:#14532d}
+.card p{margin:0;color:#666;line-height:1.7;font-size:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.item{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.05);cursor:pointer}
+.item img{width:100%;height:110px;object-fit:cover}
+.item .in{padding:10px}
+.item b{font-size:14px;color:#14532d}
+.item span{font-size:12px;color:#888}
+.bigimg{width:100%;height:180px;object-fit:cover;border-radius:16px}
+input,select{width:100%;padding:13px;border-radius:12px;border:1.5px solid #e5e7eb;font-size:16px;margin-top:8px;background:#f9fafb}
+.btn{width:100%;padding:14px;border:0;border-radius:14px;font-size:16px;font-weight:bold;margin-top:10px;cursor:pointer;color:#fff}
+.btn.green{background:#16a34a} .btn.red{background:#dc2626} .btn.blue{background:#0284c7} .btn.orange{background:#ea580c} .btn.dark{background:#14532d}
+.row{display:flex;gap:8px}
+.row .btn{flex:1}
+.badge{display:inline-block;background:#fef3c7;color:#92400e;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:bold}
+.badge.green{background:#dcfce7;color:#166534}
+.badge.red{background:#fee2e2;color:#991b1b}
+.chatbox{white-space:pre-wrap;line-height:1.9;font-size:15px}
+.dis{background:#fff;border-radius:18px;overflow:hidden;margin-top:12px;box-shadow:0 4px 12px rgba(0,0,0,.05)}
+.dis img{width:100%;height:190px;object-fit:cover}
+.dis .in{padding:14px}
+.step{background:#f0fdf4;border-radius:12px;padding:10px;margin-top:8px;font-size:14px;line-height:1.7}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;justify-content:space-around;padding:8px 0 14px;border-top:1px solid #eee;box-shadow:0 -4px 16px rgba(0,0,0,.06);border-radius:20px 20px 0 0}
+.bottom div{text-align:center;font-size:11px;color:#94a3b8;cursor:pointer;padding:4px 8px}
+.bottom div.on{color:#166534}
+.bottom div.on .ico{background:#dcfce7}
+.bottom .ico{width:44px;height:44px;border-radius:14px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 2px}
+.hidden{display:none}
 </style>
 </head>
 <body>
-<h1>🌾 الغيط - رفيق الفلاح</h1>
-<p>ازرع ايه؟ الفدان يكسب كام؟ كل المحاصيل</p>
 
-<input id="q" placeholder="اسأل أي حاجة: قمح، سمك، عندي 5 فدان ازرع ايه...">
-<button onclick="ask()">اسأل الغيط 🌾</button>
+<div class="top">
+<h1>🤖 AI الفلاح</h1>
+<p>رفيقك الذكي في الغيط • صور الأمراض • العلاج • المكسب</p>
+<span class="pill">🌤️ الطقس اليوم: مناسب للزراعة - 24° - اسقي الصبح بدري</span>
+</div>
 
+<div class="searchbar">
+<input id="topQ" placeholder="دور على مرض، محصول... مثال: صدأ القمح">
+<button onclick="topSearch()">🔍</button>
+</div>
+
+<div class="quick">
+<span class="on" onclick="show('home',this)">🏠 الرئيسية</span>
+<span onclick="show('disease',null,1)">🩺 الأمراض بالصور</span>
+<span onclick="show('success',null,2)">🏆 أنجح محصولي</span>
+<span onclick="show('calc',null,3)">💰 مكسب الفدان</span>
+<span onclick="show('chat',null,4)">💬 اسأل AI</span>
+</div>
+
+<!-- الرئيسية -->
+<div id="home" class="section">
+<h3>👋 أهلاً بيك يا فلاح</h3>
 <div class="card">
+<h3>عايز تعمل ايه النهاردة؟</h3>
+<p>اختار واحدة، والبرنامج هيوديك ليها على طول.</p>
+<div class="row"><button class="btn red" onclick="show('disease',null,1)">🩺 مرض عندي</button><button class="btn orange" onclick="show('success',null,2)">🏆 أنجح محصولي</button></div>
+<button class="btn blue" onclick="show('calc',null,3)">💰 احسب مكسبي</button>
+</div>
+
+<h3>🔥 أمراض منتشرة في نوفمبر <span class="badge red">خلي بالك</span></h3>
+<div class="grid2" id="homeGrid"></div>
+
+<h3>💰 الأكثر ربحاً <span class="badge green">موسم الشتاء</span></h3>
+<div class="grid2">
+<div class="item" onclick="openCrop('فراولة')"><img src="https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=800&q=80"><div class="in"><b>🍓 فراولة</b><br><span>مكسب 234 ألف / فدان</span></div></div>
+<div class="item" onclick="openCrop('ثوم')"><img src="https://images.unsplash.com/photo-1615477550926-0d4e8a3a5a3a?w=800&q=80"><div class="in"><b>🧄 ثوم</b><br><span>مكسب 170 ألف / فدان</span></div></div>
+<div class="item" onclick="openCrop('بصل')"><img src="https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=800&q=80"><div class="in"><b>🧅 بصل</b><br><span>مكسب 133 ألف / فدان</span></div></div>
+<div class="item" onclick="openCrop('قمح')"><img src="https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=800&q=80"><div class="in"><b>🌾 قمح</b><br><span>مكسب 22 ألف / مضمون</span></div></div>
+</div>
+
+<h3>💰 أسعار اليوم</h3>
+<div class="card"><p>🍅 طماطم 10 ج &nbsp;|&nbsp; 🥔 بطاطس 12 ج<br>🧅 بصل 15 ج &nbsp;|&nbsp; 🌾 قمح 2000 / أردب<br>🐟 بلطي 65 ج &nbsp;|&nbsp; 🥚 بيض 150 / كرتونة</p></div>
+</div>
+
+<!-- الأمراض -->
+<div id="disease" class="section hidden">
+<h3>🩺 الأمراض بالصور والعلاج</h3>
+<div class="card"><p>اكتب اللي شايفه: ورق أصفر، صدأ، من، لفحة، دودة...</p><input id="dq" placeholder="اكتب العرض..."><button class="btn red" onclick="searchDisease()">اعرف المرض والعلاج 🩺</button><div id="dRes"></div></div>
+<h3>📋 كل الأمراض - دوس على الصورة</h3>
+<div class="grid2" id="disGrid"></div>
+</div>
+
+<!-- النجاح -->
+<div id="success" class="section hidden">
+<h3>🏆 إزاي أنجح أي محصول؟</h3>
+<div class="card"><h3>7 خطوات للنجاح</h3><p>
+<b>1. تقاوي معتمدة</b> من مكان مضمون<br>
+<b>2. جهز الأرض</b> حرث + سباخ بلدي قبل الزراعة بـ 15 يوم<br>
+<b>3. ازرع في ميعاده</b> تأخير أسبوع = خسارة 15%<br>
+<b>4. الري الصبح بدري</b> متغرقش ومتعطشش<br>
+<b>5. سمد في مواعيده</b> نيتروجين للنمو، بوتاسيوم للثمار<br>
+<b>6. رش وقائي كل 15 يوم</b> متستناش المرض<br>
+<b>7. احصد في وقته</b> وخزن ناشف ومهوي
+</p></div>
+<h3>🌾 اختار محصولك وشوف إزاي تنجحه</h3>
+<div class="grid2" id="sucGrid"></div><div id="sucRes"></div>
+</div>
+
+<!-- المكسب -->
+<div id="calc" class="section hidden">
 <h3>💰 حاسبة مكسب الفدان</h3>
-<select id="cropSel">
-<option value="قمح">قمح</option>
-<option value="بطاطس">بطاطس</option>
-<option value="طماطم">طماطم</option>
-<option value="بصل">بصل</option>
-<option value="ثوم">ثوم</option>
-<option value="ذرة">ذرة شامي</option>
-<option value="رز">رز</option>
-<option value="فول">فول بلدي</option>
-<option value="فراولة">فراولة</option>
-<option value="عنب">عنب</option>
-<option value="مانجو">مانجو</option>
-<option value="قطن">قطن</option>
-<option value="قصب">قصب سكر</option>
-<option value="بنجر">بنجر سكر</option>
-<option value="برسيم">برسيم</option>
-<option value="خيار">خيار</option>
-<option value="باذنجان">باذنجان</option>
-<option value="فلفل">فلفل</option>
-<option value="موز">موز</option>
-<option value="بطيخ">بطيخ</option>
-</select>
-<input id="fed" type="number" value="1" placeholder="كام فدان؟">
-<button class="b2" onclick="calc()">احسب مكسبي 💰</button>
-<div id="calcRes" class="small">اختار محصول واكتب كام فدان</div>
+<div class="card"><p>اختار المحصول واكتب كام فدان.</p><select id="cropSel"><option value="قمح">🌾 قمح</option><option value="بصل">🧅 بصل</option><option value="ثوم">🧄 ثوم</option><option value="بطاطس">🥔 بطاطس</option><option value="طماطم">🍅 طماطم</option><option value="فراولة">🍓 فراولة</option><option value="عنب">🍇 عنب</option></select><input id="fed" type="number" value="1"><button class="btn blue" onclick="calc()">احسب مكسبي 💰</button><div id="calcRes" class="chatbox" style="margin-top:10px"></div></div>
 </div>
 
-<div class="card">
-<h3>🌱 أزرع ايه دلوقتي؟ - شهر نوفمبر</h3>
-<p style="text-align:right">احنا في نوفمبر، أحسن زراعات دلوقتي:</p>
-<button class="b3" onclick="setQ('ازرع ايه')">اعرف أزرع ايه دلوقتي 🌱</button>
-<div class="small">دوس الزرار، هيقولك كل اللي يتزرع في نوفمبر ومكسب كل واحد</div>
+<!-- الشات -->
+<div id="chat" class="section hidden">
+<h3>💬 اسأل AI الفلاح</h3>
+<div class="card"><input id="q" placeholder="مثال: قمح فيه صدأ أعمل ايه؟"><button class="btn green" onclick="ask()">اسأل 🤖</button><div id="ans" class="chatbox" style="margin-top:12px">اسألني عن أي مرض أو محصول...</div></div>
 </div>
 
-<div class="chips">
-<span onclick="setQ('قمح')">🌾 قمح</span>
-<span onclick="setQ('بطاطس')">🥔 بطاطس</span>
-<span onclick="setQ('طماطم')">🍅 طماطم</span>
-<span onclick="setQ('بصل')">🧅 بصل</span>
-<span onclick="setQ('ثوم')">🧄 ثوم</span>
-<span onclick="setQ('عنب')">🍇 عنب</span>
-<span onclick="setQ('مانجو')">🥭 مانجو</span>
-<span onclick="setQ('فراولة')">🍓 فراولة</span>
-<span onclick="setQ('سمك')">🐟 سمك</span>
-<span onclick="setQ('بقر')">🐄 بقر</span>
-<span onclick="setQ('فراخ')">🐔 فراخ</span>
-<span onclick="setQ('سعر')">💰 أسعار</span>
+<div class="bottom">
+<div class="on" onclick="show('home',this,0)"><div class="ico">🏠</div>الرئيسية</div>
+<div onclick="show('disease',this,1)"><div class="ico">🩺</div>الأمراض</div>
+<div onclick="show('success',this,2)"><div class="ico">🏆</div>أنجح محصولي</div>
+<div onclick="show('calc',this,3)"><div class="ico">💰</div>المكسب</div>
+<div onclick="show('chat',this,4)"><div class="ico">💬</div>اسأل</div>
 </div>
-
-<div id="ans" class="box">اكتب سؤالك فوق، أو اختار محصول، أو احسب مكسبك.
-مثال: عندي 5 فدان أرض طينية وميه حلوة، ازرع ايه ويكسب كام؟</div>
 
 <script>
-function setQ(t){document.getElementById('q').value=t;ask();}
-// تكلفة، انتاج بالطن أو أردب، سعر البيع، مكسب الفدان محسوب
-const PROFIT={
-"قمح":{تكلفة:18000,انتاج:"20 أردب",سعر:2000,مكسب:22000,مدة:"150 يوم",ميعاد:"نوفمبر - ديسمبر"},
-"بطاطس":{تكلفة:55000,انتاج:"13 طن",سعر:11000,مكسب:88000,مدة:"110 يوم",ميعاد:"سبتمبر - أكتوبر"},
-"طماطم":{تكلفة:45000,انتاج:"18 طن",سعر:8000,مكسب:99000,مدة:"100 يوم",ميعاد:"أغسطس - سبتمبر"},
-"بصل":{تكلفة:35000,انتاج:"14 طن",سعر:12000,مكسب:133000,مدة:"150 يوم",ميعاد:"نوفمبر - ديسمبر"},
-"ثوم":{تكلفة:40000,انتاج:"7 طن",سعر:30000,مكسب:170000,مدة:"180 يوم",ميعاد:"سبتمبر - أكتوبر"},
-"ذرة":{تكلفة:15000,انتاج:"22 أردب",سعر:1400,مكسب:15800,مدة:"110 يوم",ميعاد:"مايو - يونيو"},
-"رز":{تكلفة:22000,انتاج:"3.8 طن",سعر:15000,مكسب:35000,مدة:"120 يوم",ميعاد:"مايو - يونيو"},
-"فول":{تكلفة:12000,انتاج:"11 أردب",سعر:2500,مكسب:15500,مدة:"140 يوم",ميعاد:"أكتوبر - نوفمبر"},
-"فراولة":{تكلفة:90000,انتاج:"18 طن",سعر:18000,مكسب:234000,مدة:"180 يوم",ميعاد:"سبتمبر - أكتوبر"},
-"عنب":{تكلفة:35000,انتاج:"9 طن",سعر:15000,مكسب:100000,مدة:"دائم",ميعاد:"يناير"},
-"مانجو":{تكلفة:25000,انتاج:"8 طن",سعر:25000,مكسب:175000,مدة:"دائم",ميعاد:"مارس"},
-"قطن":{تكلفة:20000,انتاج:"8 قنطار",سعر:6000,مكسب:28000,مدة:"180 يوم",ميعاد:"مارس - أبريل"},
-"قصب":{تكلفة:30000,انتاج:"45 طن",سعر:1100,مكسب:19500,مدة:"12 شهر",ميعاد:"مارس"},
-"بنجر":{تكلفة:20000,انتاج:"22 طن",سعر:1200,مكسب:6400,مدة:"180 يوم",ميعاد:"أغسطس - أكتوبر"},
-"برسيم":{تكلفة:8000,انتاج:"30 طن أخضر",سعر:1200,مكسب:28000,مدة:"180 يوم",ميعاد:"أكتوبر"},
-"خيار":{تكلفة:35000,انتاج:"14 طن",سعر:9000,مكسب:91000,مدة:"60 يوم",ميعاد:"مارس - سبتمبر"},
-"باذنجان":{تكلفة:30000,انتاج:"15 طن",سعر:7000,مكسب:75000,مدة:"120 يوم",ميعاد:"مارس - أغسطس"},
-"فلفل":{تكلفة:40000,انتاج:"10 طن",سعر:12000,مكسب:80000,مدة:"120 يوم",ميعاد:"مارس - أغسطس"},
-"موز":{تكلفة:50000,انتاج:"28 طن",سعر:9000,مكسب:202000,مدة:"دائم",ميعاد:"طول السنة"},
-"بطيخ":{تكلفة:25000,انتاج:"15 طن",سعر:5000,مكسب:50000,مدة:"90 يوم",ميعاد:"مارس - مايو"},
-};
-function calc(){
-let c=document.getElementById('cropSel').value;
-let f=parseFloat(document.getElementById('fed').value||1);
-let p=PROFIT[c];
-if(!p) return;
-let totalCost=p.تكلفة*f;
-let totalProfit=p.مكسب*f;
-document.getElementById('calcRes').innerHTML=`<b>${c} - ${f} فدان</b><br>التكلفة: ${totalCost.toLocaleString()} جنيه<br>الانتاج: ${p.انتاج} للفدان<br>صافي المكسب للفدان: ${p.مكسب.toLocaleString()} جنيه<br><b>صافي مكسبك الكلي: ${totalProfit.toLocaleString()} جنيه</b><br>المدة: ${p.مدة} - يتزرع: ${p.ميعاد}<br><span style="color:#888">دي أرقام استرشادية، بتتغير حسب السوق والتسميد</span>`;
-document.getElementById('ans').innerText=`💰 ${c}\n\nلو عندك ${f} فدان\nالتكلفة الكلية: ${totalCost.toLocaleString()} جنيه\nصافي المكسب: ${totalProfit.toLocaleString()} جنيه\n\nالتفاصيل:\nالانتاج للفدان: ${p.انتاج}\nالمدة: ${p.مدة}\nميعاد الزراعة: ${p.ميعاد}`;
-}
-const D={
-"قمح":"🌾 القمح\n\nيتزرع: 15 نوفمبر - 15 ديسمبر\nيقعد: 150 يوم\nالفدان: 20 أردب\nالتكلفة: 18,000 جنيه\nسعر البيع: 2,000 جنيه / أردب\n💰 صافي مكسب الفدان: 22,000 جنيه\nالري: كل 15 يوم\nالأرض: طينية صفراء\nأمراضه: صدأ - بياض دقيقي - من",
-"بطاطس":"🥔 البطاطس\n\nتتزرع: سبتمبر - أكتوبر\nتقعد: 110 يوم\nالفدان: 13 طن\nالتكلفة: 55,000 جنيه\n💰 صافي مكسب الفدان: 88,000 جنيه\nالري: كل 7 أيام\nالأرض: رملية صفراء\nأمراضها: ندوة - عفن",
-"طماطم":"🍅 الطماطم\n\nتتزرع: أغسطس - سبتمبر\nتقعد: 100 يوم\nالفدان: 18 طن\nالتكلفة: 45,000 جنيه\n💰 صافي مكسب الفدان: 99,000 جنيه\nالري: كل 5 أيام",
-"بصل":"🧅 البصل\n\nيتزرع: نوفمبر - ديسمبر\nيقعد: 150 يوم\nالفدان: 14 طن\nالتكلفة: 35,000 جنيه\n💰 صافي مكسب الفدان: 133,000 جنيه\nالري: كل 12 يوم",
-"ثوم":"🧄 الثوم\n\nيتزرع: سبتمبر - أكتوبر\nيقعد: 180 يوم\nالفدان: 7 طن\nالتكلفة: 40,000 جنيه\n💰 صافي مكسب الفدان: 170,000 جنيه",
-"ذرة":"🌽 الذرة الشامي\n\nيتزرع: مايو - يونيو\nيقعد: 110 يوم\nالفدان: 22 أردب\nالتكلفة: 15,000 جنيه\n💰 صافي مكسب الفدان: 15,800 جنيه",
-"رز":"🍚 الرز\n\nيتزرع: مايو - يونيو\nيقعد: 120 يوم\nالفدان: 3.8 طن\nالتكلفة: 22,000 جنيه\n💰 صافي مكسب الفدان: 35,000 جنيه",
-"فول":"🫘 الفول البلدي\n\nيتزرع: أكتوبر - نوفمبر\nيقعد: 140 يوم\nالفدان: 11 أردب\nالتكلفة: 12,000 جنيه\n💰 صافي مكسب الفدان: 15,500 جنيه",
-"فراولة":"🍓 الفراولة\n\nتتزرع: سبتمبر - أكتوبر\nتقعد: 180 يوم\nالفدان: 18 طن\nالتكلفة: 90,000 جنيه\n💰 صافي مكسب الفدان: 234,000 جنيه - أعلى مكسب",
-"عنب":"🍇 العنب\n\nيتزرع: يناير - فبراير\nالفدان: 9 طن\nالتكلفة السنوية: 35,000 جنيه\n💰 صافي مكسب الفدان: 100,000 جنيه",
-"مانجو":"🥭 المانجو\n\nتتزرع: مارس - أبريل\nالشجرة: 100-150 كيلو\n💰 صافي مكسب الفدان بعد ما تكبر: 175,000 جنيه",
-"قطن":"🧶 القطن\n\nيتزرع: مارس - أبريل\nالفدان: 8 قنطار\nالتكلفة: 20,000 جنيه\n💰 صافي مكسب الفدان: 28,000 جنيه",
-"قصب":"🎋 قصب السكر\n\nيتزرع: مارس - أبريل\nالفدان: 45 طن\nالتكلفة: 30,000 جنيه\n💰 صافي مكسب الفدان: 19,500 جنيه",
-"بنجر":"🫜 بنجر السكر\n\nيتزرع: أغسطس - أكتوبر\nالفدان: 22 طن\n💰 صافي مكسب الفدان: 6,400 جنيه - مكسبه قليل",
-"برسيم":"🌿 البرسيم\n\nيتزرع: أكتوبر\nالفدان: 30 طن أخضر\nالتكلفة: 8,000 جنيه\n💰 صافي مكسب الفدان: 28,000 جنيه\nممتاز لو عندك مواشي",
-"خيار":"🥒 الخيار\n\nيتزرع: مارس - سبتمبر\nالفدان: 14 طن\n💰 صافي مكسب الفدان: 91,000 جنيه",
-"موز":"🍌 الموز\n\nالفدان: 28 طن\nالتكلفة: 50,000 جنيه\n💰 صافي مكسب الفدان: 202,000 جنيه",
-"بطيخ":"🍉 البطيخ\n\nيتزرع: مارس - مايو\nالفدان: 15 طن\n💰 صافي مكسب الفدان: 50,000 جنيه",
-"سمك":"🐟 السمك - البلطي\n\nالحوض الفدان: ينتج 4-6 طن بلطي\nالتكلفة: 120,000 جنيه للفدان في الدورة\nسعر البيع: 60-70 جنيه / كيلو\n💰 صافي مكسب الفدان في الدورة (6 شهور): 150,000 - 200,000 جنيه\nالأكل: علف 30% بروتين، 3 مرات في اليوم\nالميه: غير ربع الميه كل أسبوع\nأمراضه: فطريات - نقص أكسجين\nلو السمك طالع على الوش: نقص أكسجين، شغل البدال فورا",
-"بقر":"🐄 البقر الحلاب\n\nبياكل: 25 كيلو علف + برسيم\nبينتج: 15-25 لتر لبن في اليوم\n💰 مكسب البقرة في الشهر: 8,000 - 12,000 جنيه بعد الأكل\nالتطعيم: حمى قلاعية كل 6 شهور",
-"فراخ":"🐔 الفراخ البياض\n\nبياكل: 120 جرام علف في اليوم\nبينتج: 280 بيضة في السنة\n💰 مكسب الـ 100 فرخة في الشهر: 6,000 - 9,000 جنيه",
-"ازرع ايه":"🌱 أزرع ايه دلوقتي؟ - نوفمبر\n\nاحنا في نوفمبر، أحسن حاجة تزرعها دلوقتي:\n\n1. 🧅 بصل - مكسب الفدان 133,000 جنيه - ممتاز\n2. 🌾 قمح - مكسب الفدان 22,000 جنيه - مضمون وبيعه سهل\n3. 🫘 فول بلدي - مكسب 15,500 جنيه - تكلفته قليلة\n4. 🌿 برسيم - مكسب 28,000 جنيه - لو عندك مواشي\n5. 🥔 بطاطس شتوي - مكسب 88,000 جنيه\n6. 🟢 بسلة - مكسب 40,000 جنيه\n7. 🧄 ثوم - مكسب 170,000 جنيه بس عايز خبرة\n\nنصيحتي:\n- لو معاك فلوس قليلة: ازرع قمح + فول\n- لو معاك فلوس متوسطة: ازرع بصل + بطاطس\n- لو عندك مواشي: ازرع برسيم + قمح\n\nقولي: عندك كام فدان؟ وأرضك طينية ولا رملية؟ ومعاك كام؟ وأنا أقولك بالظبط تزرع ايه.",
-"سعر":"💰 الأسعار اليوم - استرشادية\n\nطماطم: 8-12 جنيه / كيلو\nبطاطس: 10-15 جنيه\nبصل: 12-18 جنيه\nثوم: 30 جنيه\nقمح: 2000 جنيه / أردب\nذرة: 1400 جنيه / أردب\nفراخ: 70 جنيه / كيلو\nبيض: 150 جنيه / كرتونة\nلبن: 30 جنيه / لتر\nسمك بلطي: 65 جنيه / كيلو",
-};
-function ask(){
-let q=document.getElementById('q').value.trim();
-if(!q) return;
-document.getElementById('ans').innerText='بفكر... 🌾';
-if(q.includes('ازرع')||q.includes('أزرع')||q.includes('ازرع ايه')){document.getElementById('ans').innerText=D["ازرع ايه"];return;}
-if(q.includes('كام فدان')||q.includes('عندي')){document.getElementById('ans').innerText='قولي:\n1. عندك كام فدان؟\n2. أرضك طينية ولا رملية؟\n3. معاك كام فلوس للزراعة؟\n4. عندك ميه كتير ولا قليلة؟\n\nمثال: عندي 5 فدان طينية ومعايا 100 ألف\nوأنا هقولك تزرع ايه بالظبط ومكسبك كام.';return;}
-for(let k in D){ if(q.includes(k)){ document.getElementById('ans').innerText=D[k]; return; } }
-document.getElementById('ans').innerText='فهمتك 🌾\n\nجرب:\n- اكتب اسم محصول: قمح، بصل، سمك\n- أو دوس: ازرع ايه\n- أو استخدم حاسبة المكسب فوق\n\nوقولي: عندك كام فدان؟ وأرضك ايه؟';
-}
-</script>
-</body>
-</html>
+const IMGS={قمح:"https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=800&q=80",طماطم:"https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=800&q=80",بطاطس:"https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=800&q=80",بصل:"https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=800&q=80",عنب:"https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=800&q=80",مانجو:"https://images.unsplash.com/photo-1553279768-865429fa0078?w=800&q=80",فراولة:"https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=800&q=80",بقر:"https://images.unsplash.com/photo-1546445317-29f4545e9d8d?w=800&q=80",سمك:"https://images.unsplash.com/photo-1535591273668-578e31182c4f?w=800&q=80",عام:"https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800&q=80"};
+const DISEASES=[
+{id:"صدأ القمح",crop:"قمح",img:IMGS.قمح,عراض:"بقع برتقالية / صفراء على الورق، بتنتشر بسرعة",علاج:"رش: تيلت أو سكور كل 15 يوم. وقف الري الزيادة.",وقاية:"أصناف مقاومة، رش كبريت وقائي.",نجاح:"القمح ينجح لو زرعته 15 نوفمبر - 15 ديسمبر، وسقيته كل 15 يوم."},
+{id:"لفحة الطماطم",crop:"طماطم",img:IMGS.طماطم,عراض:"بقع بني غامق على الورق والثمار، الورق بينشف",علاج:"رش: ريدوميل جولد أو أكروبات. شيل الورق المصاب. قلل الميه.",وقاية:"اسقي الصبح، رش نحاس وقائي كل 15 يوم.",نجاح:"الطماطم تنجح لو سقيتها كل 5 أيام ورشيت وقائي."},
+{id:"ندوة البطاطس",crop:"بطاطس",img:IMGS.بطاطس,عراض:"بقع بني على الورق، الورق بيموت، والبطاطس تعفن",علاج:"رش: ريدوميل كل 10 أيام. متسقيش كتير.",وقاية:"رش وقائي من عمر 40 يوم.",نجاح:"البطاطس تنجح لو أرض رملية وري كل 7 أيام."},
+{id:"بياض البصل",crop:"بصل",img:IMGS.بصل,عراض:"بقع صفرا وبنفسجي على الورق",علاج:"رش: ريدوميل أو مانكوزيب. وقف الري 10 أيام.",وقاية:"متزرعش بصل مكان بصل.",نجاح:"البصل ينجح لو زرعته نوفمبر وسقيته كل 12 يوم."},
+{id:"بياض العنب",crop:"عنب",img:IMGS.عنب,عراض:"طبقة بيضا زي الدقيق على الورق والعناقيد",علاج:"رش كبريت ميكروني كل 15 يوم.",وقاية:"قلم صح وخلي الهوا يدخل.",نجاح:"العنب ينجح لو قلمته في يناير ورشيت كبريت."},
+{id:"بياض المانجو",crop:"مانجو",img:IMGS.مانجو,عراض:"طبقة بيضا على الأزهار، الزهر بيقع",علاج:"رش: توباس أو كبريت وقت التزهير.",وقاية:"رش وقائي أول التزهير.",نجاح:"المانجو تنجح لو رشيت وقت التزهير."},
+{id:"ورق أصفر",crop:"عام",img:IMGS.عام,عراض:"الورق كله أصفر",علاج:"قلل الميه، رش حديد مخلبي + نترات. اللي تحت: نقص نيتروجين. اللي فوق: نقص حديد.",وقاية:"سمد متوازن، متغرقش الأرض.",نجاح:"الورق الأصفر معناه ميه زيادة أو نقص حديد."},
+{id:"ذبول",crop:"عام",img:IMGS.عام,عراض:"النبات دبلان رغم الميه",علاج:"رش: توبسين. قلل الميه. لو نبات واحد اخلعه.",وقاية:"متسقيش كتير.",نجاح:"الذبول من الميه الزيادة."},
+{id:"سمك طالع",crop:"سمك",img:IMGS.سمك,عراض:"السمك على الوش وفاتح بقه",علاج:"شغل البدال فوراً، غير ربع الميه، وقف الأكل يوم.",وقاية:"بدال شغال، متكترش العلف.",نجاح:"السمك ينجح لو أكسجين كويس وتغيير ميه كل أسبوع."},
+];
+const SUCCESS={قمح:"🏆 إزاي تنجح القمح؟\n\n1. ازرع 15 نوفمبر - 15 ديسمبر\n2. تقاوي: جيزة 171 أو سخا 95\n3. سباخ بلدي قبل الزراعة\n4. ري كل 15 يوم\n5. رش صدأ وقائي في فبراير\n6. وقف الري قبل الحصاد بـ 15 يوم\n\nالفدان يجيب 22 أردب",طماطم:"🏆 إزاي تنجح الطماطم؟\n\n1. ازرع في سبتمبر\n2. شتلة قوية\n3. ري تنقيط كل 5 أيام\n4. رش نحاس وقائي\n5. رش كالسيوم للثمرة\n\nالفدان يجيب 18 طن",بصل:"🏆 إزاي تنجح البصل؟\n\n1. ازرع نوفمبر\n2. ري كل 12 يوم\n3. رش بياض زغبي وقائي\n4. وقف الري قبل التقليع بـ 20 يوم\n\nالفدان يجيب 14 طن",عنب:"🏆 إزاي تنجح العنب؟\n\n1. قلم في يناير\n2. رش كبريت بعد التقليم\n3. خف العناقيد\n\nالفدان يجيب 9 طن"};
+function render(){
+let h=document.getElementById('homeGrid'), g=document.getElementById('disGrid'), s=document.getElementById('sucGrid');
+h.innerHTML=''; g.innerHTML=''; s.innerHTML='';
+DISEASES.slice(0,4).forEach(d=>{let e=document.createElement('div');e.className='item';e.onclick=()=>showDisease(d.id);e.innerHTML=`<img src="${d.img}"><div class="in"><b>${d.id}</b><br><span>دوس للعلاج</span></div>`;h
