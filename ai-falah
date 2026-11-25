@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>تجربة الزراير</title>
+<style>body{font-family:system-ui;padding:20px;background:#f1f5f2}button{width:100%;padding:16px;margin:8px 0;border:0;border-radius:14px;font-size:18px;font-weight:bold;color:#fff;cursor:pointer}#b1{background:#dc2626}#b2{background:#0284c7}#b3{background:#16a34a}#res{background:#fff;padding:16px;border-radius:14px;margin-top:12px;font-size:18px}</style>
+</head>
+<body>
+<h2>🤖 AI الفلاح - تجربة الزراير</h2>
+<button id="b1">🩺 دوس هنا - مرض عندي</button>
+<button id="b2">💰 دوس هنا - احسب مكسبي</button>
+<button id="b3">🏆 دوس هنا - أنجح محصولي</button>
+<div id="res">دوس على أي زرار فوق 👆</div>
+<script>
+document.getElementById("b1").addEventListener("click", function(){ document.getElementById("res").innerText = "✅ زرار المرض شغال! لو شايف الرسالة دي يبقى الزراير شغالة."; });
+document.getElementById("b2").addEventListener("click", function(){ document.getElementById("res").innerText = "✅ زرار المكسب شغال! مكسبك 120,000 جنيه 💰"; });
+document.getElementById("b3").addEventListener("click", function(){ document.getElementById("res").innerText = "✅ زرار النجاح شغال! ازرع في ميعاده واسقي الصبح بدري 🏆"; });
+</script>
+</body>
+</html>
